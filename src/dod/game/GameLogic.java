@@ -521,8 +521,14 @@ public class GameLogic {
 		    this.playerWon = true;
 		    player.win();
 	
-		    // TODO: Other player's should be informed of their loss over the
-		    // network.
+		    // Other players are informed of the win.
+		    
+		    for(Player p : players){
+		    	p.sendMessage("Someone has won the game!!");
+		    }
+		    
+		    System.exit(0); //Probably a bad idea - just quit the game.
+		    
 		} else {
 		    if ((player.remainingAp() == 0) || player.isDead()) {
 		    	// Force the end of turn

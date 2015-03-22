@@ -1,76 +1,46 @@
+/**
+ * Simple game client for a networked command line human user.
+ * 
+ * @author Zachary Shannon
+ */
+
 package dod;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 
-public class GameClient{
+public class GameClient implements NetworkMessageListener{
 	
-	static Socket sckt;
-	static BufferedReader rdr;
-	static PrintWriter wrtr;
-	static Scanner scn;
+	private Scanner scn;
+	private NetworkClient nc;
 	
+	/**
+	 * Creates new instantiation of this class.
+	 * @param args
+	 */
 	public static void main(String[] args) {
-		try {
-			scn = new Scanner(System.in);
-			sckt = new Socket(getAddress(), 49155);
-			rdr = new BufferedReader(new InputStreamReader(sckt.getInputStream()));
-			wrtr = new PrintWriter(new OutputStreamWriter(sckt.getOutputStream()), true);
-			
-		} catch (UnknownHostException e) {
-			System.err.println("Host not found.");
-			System.exit(1);
-		} catch (IOException e) {
-			System.err.println("Input/output error connecting to host.");
-			System.exit(1);
-		}
-		
-		(new Thread(){
-			public void run(){
-				while(true){
-					try {
-						System.out.println(rdr.readLine());
-					} catch (IOException e) {
-						//Something has gone wrong.
-						System.err.println("Error reading from the host.");
-						System.exit(1);
-					}
-				}
-			}
-		}).start();
-		
-		
-		(new Thread(){
-			public void run(){
-				
-				Scanner scn = new Scanner(System.in);
-				
-				while(true){
-					
-					String cmd = scn.nextLine();
-					
-					//Check for eof
-					if(cmd == null){
-						System.exit(0); //Exit nicely.
-					}
-					
-					wrtr.println(cmd);
-				}
-			}
-		}).start();
+		new GameClient();
 	}
-	
-	
-	private static String getAddress(){
-		System.out.println("Enter the address to connect to:");
-		String address = scn.nextLine();
-		return address;
+	/**
+	 * Sets up a scanner and a NetworkClient.
+	 */
+	public GameClient(){
+		scn = new Scanner(System.in);
+		nc = new NetworkClient(NetworkClient.getAddress(scn), NetworkClient.getPort(scn), this);
+	}
+
+	/**
+	 * For implementation of NetworkMessageListener - simply prints message to stdout.
+	 */
+	@Override
+	public void handleMessage(String message) {
+		System.out.println(message);
+	}
+
+	/**
+	 * For implementation of NetworkMessageListener - simply gets message from stdin using the scanner.
+	 */
+	@Override
+	public String getMessage() {
+		return scn.nextLine();
 	}
 }

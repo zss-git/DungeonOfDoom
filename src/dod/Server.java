@@ -11,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import dod.game.GameLogic;
 
@@ -19,13 +20,10 @@ public class Server {
 	public static void main(String[] args) {
 		
 		try {
-			//Test this...
 			
-			String mapName = "defaultMap";
-			
-			//if(args.length > 0){
-			//	mapName = args[1];
-			//}
+			Scanner scn = new Scanner(System.in);
+			System.out.println("Enter the name of the map you would like to load:");
+			String mapName = scn.nextLine();
 			
 			GameLogic game = new GameLogic(mapName);
 			System.out.println("Using map " + mapName);
