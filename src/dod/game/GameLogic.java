@@ -117,9 +117,11 @@ public class GameLogic {
      * Handles the client message LOOK Shows the portion of the map that the
      * player can currently see.
      * 
+     * Added 'synchronized' keyword so only one client can look at a time - Zachary Shannon.
+     * 
      * @return the part of the map that the player can currently see.
      */
-    public String clientLook(int playerID) {
+    public synchronized String clientLook(int playerID) {
 	assertPlayerExists(playerID);
 
 	final Player player = this.players.get(playerID);
@@ -491,25 +493,40 @@ public class GameLogic {
      */
     private void advanceTurn(int playerID) {
 	final Player player = this.players.get(playerID);
-
-	// Check if the player has won
-	if ((player.getGold() >= this.map.getGoal())
-		&& (this.map.getMapCell(player.getLocation()).isExit())) {
-
-	    // Player should not be able to move if they have won
-	    assert (!this.playerWon);
-
-	    this.playerWon = true;
-	    player.win();
-
-	    // TODO: Other player's should be informed of their loss over the
-	    // network.
-	} else {
-	    if ((player.remainingAp() == 0) || player.isDead()) {
-		// Force the end of turn
-		clientEndTurn(playerID);
-	    }
-	}
+	
+		//Check that there are some alive players, first.
+		int numberOfDeadPeople = 0;
+	
+		for (Player curPlayer : players){
+			if(curPlayer.isDead()){
+				numberOfDeadPeople++;
+			}
+		}
+		
+		if(numberOfDeadPeople >= players.size()){
+			//Everyone is dead.
+			System.out.println("Everyone is dead! There is no one else left to play the game.\nServer is quitting...");
+			System.exit(0);
+		}
+	
+		// Check if the player has won
+		if ((player.getGold() >= this.map.getGoal())
+			&& (this.map.getMapCell(player.getLocation()).isExit())) {
+	
+		    // Player should not be able to move if they have won.
+		    assert (!this.playerWon);
+	
+		    this.playerWon = true;
+		    player.win();
+	
+		    // TODO: Other player's should be informed of their loss over the
+		    // network.
+		} else {
+		    if ((player.remainingAp() == 0) || player.isDead()) {
+		    	// Force the end of turn
+		    	clientEndTurn(playerID);
+		    }
+		}
     }
 
 }

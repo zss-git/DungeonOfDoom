@@ -32,7 +32,6 @@ public class Server {
 						
 			//Start up the server.
 			ServerSocket listener = new ServerSocket(49155);
-			
 			System.out.println("Server started.");
 			
 			//Accept connections.
