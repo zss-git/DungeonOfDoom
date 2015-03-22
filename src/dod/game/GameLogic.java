@@ -68,15 +68,17 @@ public class GameLogic {
 
     /**
      * Removes a player from the game. The player is killed within the game, but
-     * the reference is held. This might need some changing for a network.
+     * the reference is held. 
+     * 
+     * Made some changes to support networking - Zachary Shannon
      */
     public void removePlayer(int playerID) {
-	this.players.get(playerID).kill();
-
-	if (this.currentPlayer == playerID) {
-	    // Advance turn to handle death on player's turn
-	    advanceTurn(playerID);
-	}
+    	this.players.get(playerID).kill();
+    	
+		if (this.currentPlayer == playerID) {
+		    // Advance turn to handle death on player's turn
+		    advanceTurn(playerID);
+		}
     }
 
     /**

@@ -42,7 +42,6 @@ public class NetworkedUser extends CommandLineUser{
 			in = client.getInputStream();
 			writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
 			reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-			
 		}
 		catch(IOException e){
 			//If this breaks, something weird is going on.
@@ -62,7 +61,7 @@ public class NetworkedUser extends CommandLineUser{
     public void run() {
 	    //Create a new buffered reader using the client input stream. 
 		
-		boolean connectionOpen = true; //Mostly focused around elegantly closing the client connection.
+		boolean connectionOpen = true; //For (at least trying to) elegantly closing the client connection.
 	
 		while (connectionOpen) {
 		    try {
@@ -72,17 +71,17 @@ public class NetworkedUser extends CommandLineUser{
 		    }
 		    catch (IOException e) {
 				System.err.println("Input/output error with client... Closing connection.");
+				removePlayer();
 				connectionOpen = false;		    
 			}
 		    catch (RuntimeException e){
 		    	System.err.println("Error with client... Attempting to close their connection.");
+		    	removePlayer();
 		    	connectionOpen = false;
 		    }
 		}
 		
 		System.out.println("Closing client connection: '" +  client.getInetAddress().getHostAddress() + "'...");
-		
-		removePlayer();
 				
 		try {
 			client.close();
@@ -109,8 +108,7 @@ public class NetworkedUser extends CommandLineUser{
 			
 		}
 		catch(IOException e){
-			System.err.println("Error writing to the client.");
-			System.exit(-1);
+			System.err.println("Error writing message to the client: '" + msg +"'");
 		}
     }
 }

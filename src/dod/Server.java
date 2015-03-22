@@ -23,9 +23,9 @@ public class Server {
 			
 			String mapName = "defaultMap";
 			
-			if(args.length > 0){
-				mapName = args[1];
-			}
+			//if(args.length > 0){
+			//	mapName = args[1];
+			//}
 			
 			GameLogic game = new GameLogic(mapName);
 			System.out.println("Using map " + mapName);
