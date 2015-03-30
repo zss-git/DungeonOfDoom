@@ -28,6 +28,7 @@ public class NetworkClient {
 	 * Constructor - sets up the connection.
 	 */
 	public NetworkClient(String address, int port, NetworkMessageListener setListener){
+
 		//Setup ports.
 		try {
 			sckt = new Socket(address, port);

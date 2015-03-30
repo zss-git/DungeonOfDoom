@@ -527,8 +527,8 @@ public class GameLogic {
 		    	p.sendMessage("Someone has won the game!!");
 		    }
 		    
-		    System.exit(0); //Probably a bad idea - just quit the game.
-		    
+		    System.out.println("A player has won! The game is over...");
+		    System.exit(0);		    
 		} else {
 		    if ((player.remainingAp() == 0) || player.isDead()) {
 		    	// Force the end of turn

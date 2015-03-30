@@ -64,6 +64,11 @@ public class AIGameClient implements NetworkMessageListener{
 		System.out.println(message);
 		
 		//Makes decisions based on messages.		
+		
+		if(message.startsWith("WIN")){
+			System.out.println("I've won the game! Exiting...");
+		}
+		
 		//Shouts
 		if(message.startsWith("MESSAGE")){
 			return;
