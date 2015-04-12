@@ -13,6 +13,8 @@ import dodServer.game.items.GameItem;
 /**
  * This class controls the game logic and interaction between players. Caution:
  * not thread-safe, but will need to be made so for a networked game.
+ * 
+ * Synchronized some methods for network play and added a render hint method - Zachary Shannon.
  */
 public class GameLogic {
     Map map;
@@ -121,7 +123,6 @@ public class GameLogic {
      * Handles the client message LOOK Shows the portion of the map that the
      * player can currently see.
      * 
-     * Added 'synchronized' keyword so only one client can look at a time - Zachary Shannon.
      * 
      * @return the part of the map that the player can currently see.
      */
@@ -168,6 +169,34 @@ public class GameLogic {
 	}
 
 	return lookReply;
+    }
+    
+    /**
+     * Generates the render hint output which follows the look reply - Zachary Shannon.
+     * 
+     * @param playerID The ID of the player to generate the render hint for.
+     * @return The render hint string to print to the client.
+     */
+    public String clientRenderHint(int playerID){
+    	
+    	//Get the player.
+    	assertPlayerExists(playerID);
+    	final Player player = this.players.get(playerID);
+    	
+    	//How far can the player see (how many replies should we expect to be sending?)
+    	final int distance = player.lookDistance();
+    	
+    	String renderHint = "";
+    	
+    	String lookReply = clientLook(playerID);
+    	
+    	//Clean up the look reply for processing.
+    	renderHint = lookReply.replaceAll("\\n", "");
+    	
+    	for(int i = 0; i < renderHint.length(); i++){
+    		//First one has co-ords (-3, +3)
+    	}
+    	return renderHint;
     }
 
     /**

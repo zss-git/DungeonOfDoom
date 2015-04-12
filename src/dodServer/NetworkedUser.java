@@ -107,7 +107,7 @@ public class NetworkedUser extends CommandLineUser{
      * Prints a message to standard out.
      * @param msg Message to send to standard out.
      */
-    protected void doOutputMessage(String msg) {
+    protected synchronized void doOutputMessage(String msg) {
     	writer.println(msg);
     }
 }
