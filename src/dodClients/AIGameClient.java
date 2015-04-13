@@ -12,9 +12,6 @@ import java.util.Scanner;
 
 public class AIGameClient implements NetworkMessageListener{
 	
-	//IO client
-	private NetworkClient nc;
-	
 	private String nextCommand = "LOOK";
 	private boolean commandSet = false;
 	private Object messageSync = new Object();
@@ -48,7 +45,7 @@ public class AIGameClient implements NetworkMessageListener{
 	 */
 	public AIGameClient(){
 		Scanner scn = new Scanner(System.in);
-		nc = new NetworkClient(NetworkClient.getAddress(scn), NetworkClient.getPort(scn), this);
+		new NetworkClient(NetworkClient.getAddress(scn), NetworkClient.getPort(scn), this);
 		scn.close();
 	}
 	/**

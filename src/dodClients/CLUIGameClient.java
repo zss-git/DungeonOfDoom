@@ -11,7 +11,6 @@ import java.util.Scanner;
 public class CLUIGameClient implements NetworkMessageListener{
 	
 	private Scanner scn;
-	private NetworkClient nc;
 	
 	/**
 	 * Creates new instantiation of this class.
@@ -25,7 +24,7 @@ public class CLUIGameClient implements NetworkMessageListener{
 	 */
 	public CLUIGameClient(){
 		scn = new Scanner(System.in);
-		nc = new NetworkClient(NetworkClient.getAddress(scn), NetworkClient.getPort(scn), this);
+		new NetworkClient(NetworkClient.getAddress(scn), NetworkClient.getPort(scn), this);
 	}
 
 	/**

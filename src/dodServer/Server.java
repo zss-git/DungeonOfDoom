@@ -13,7 +13,6 @@ import java.net.Socket;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -165,8 +164,8 @@ public class Server implements Runnable {
 	private void startInputThread(){
 		(new Thread(){
 			public void run(){
+				Scanner scn = new Scanner(System.in);
 				while(true){
-					Scanner scn = new Scanner(System.in);
 					String input = scn.nextLine();
 					input = input.toLowerCase();
 					
@@ -174,9 +173,11 @@ public class Server implements Runnable {
 						System.out.print("Available server commands: \nhelp - displays this message \nstop - stops the server");
 					}
 					else if(input.startsWith("stop")){
-						stopServer("Requested stop from command line.");
+						stopServer("The user told the server to stop.");
+						break;
 					}
 				}
+				scn.close();
 			}
 		}).start();
 	}
