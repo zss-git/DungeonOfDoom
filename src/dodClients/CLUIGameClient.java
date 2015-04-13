@@ -8,7 +8,7 @@ package dodClients;
 
 import java.util.Scanner;
 
-public class GameClient implements NetworkMessageListener{
+public class CLUIGameClient implements NetworkMessageListener{
 	
 	private Scanner scn;
 	private NetworkClient nc;
@@ -18,12 +18,12 @@ public class GameClient implements NetworkMessageListener{
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new GameClient();
+		new CLUIGameClient();
 	}
 	/**
 	 * Sets up a scanner and a NetworkClient.
 	 */
-	public GameClient(){
+	public CLUIGameClient(){
 		scn = new Scanner(System.in);
 		nc = new NetworkClient(NetworkClient.getAddress(scn), NetworkClient.getPort(scn), this);
 	}

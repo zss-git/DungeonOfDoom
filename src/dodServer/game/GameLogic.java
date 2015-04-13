@@ -177,27 +177,6 @@ public class GameLogic {
      * @param playerID The ID of the player to generate the render hint for.
      * @return The render hint string to print to the client.
      */
-    public String clientRenderHint(int playerID){
-    	
-    	//Get the player.
-    	assertPlayerExists(playerID);
-    	final Player player = this.players.get(playerID);
-    	
-    	//How far can the player see (how many replies should we expect to be sending?)
-    	final int distance = player.lookDistance();
-    	
-    	String renderHint = "";
-    	
-    	String lookReply = clientLook(playerID);
-    	
-    	//Clean up the look reply for processing.
-    	renderHint = lookReply.replaceAll("\\n", "");
-    	
-    	for(int i = 0; i < renderHint.length(); i++){
-    		//First one has co-ords (-3, +3)
-    	}
-    	return renderHint;
-    }
 
     /**
      * Handles the client message MOVE

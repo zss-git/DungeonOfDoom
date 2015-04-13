@@ -191,8 +191,7 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
 	    }
 	    this.waitingForResponse = true;
 	    outputMessage("LOOKREPLY" + System.getProperty("line.separator") + 
-			  this.game.clientLook(this.playerID) + this.game.clientRenderHint(this.playerID),
-			  true);
+			  this.game.clientLook(this.playerID), true);
 
 	} else if (command.equals("PICKUP")) {
 	    if (arg != null) {
