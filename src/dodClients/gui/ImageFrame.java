@@ -2,31 +2,46 @@
  * An 'image frame' for the gui, effectively a JLabel with an image painted on it.
  * Taken from here: http://stackoverflow.com/questions/299495/how-to-add-an-image-to-a-jpanel
  * 
+ * Works as a stack, then draws added images in the order they appear on the stack. 
+ * 
  * @author Zachary Shannon
- * @version 13 Apr 2015
+ * @version 14 Apr 2015
  */
 
 package dodClients.gui;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.awt.Image;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
-import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 
 public class ImageFrame extends JLabel {
 	
-	private BufferedImage image;
+	private Deque<Image> images = new ArrayDeque<Image>();
 	
-	public ImageFrame(File img){
-		try {
-			image = ImageIO.read(img);
-		} catch (IOException e) {
-			System.err.println("Failed to read an image file. Is something corrupt?");
-			System.exit(1);
+	/**
+	 * Adds an image to the stack to be drawn on the component. An assumption is made that all images are the same size.
+	 * This method may not draw images nicely if all images are not the same size.
+	 * @param img Image to add.
+	 */
+	public void addImage(Image img){
+		
+		//Set the preferred size of this label to be the same as the dimensions of the image just added - this is why images of a different size break drawing a bit.
+		this.setPreferredSize(new Dimension(img.getWidth(this), img.getHeight(this)));
+		
+		if(img != null){
+			images.add(img);
 		}
+		
+	}
+	/**
+	 * Removes an image from the stack.
+	 */
+	public void popImage(){
+		images.pop();
 	}
 	
 	
@@ -36,6 +51,10 @@ public class ImageFrame extends JLabel {
    @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(image, 0, 0, null);           
+        
+        for(Image i : images){
+        	g.drawImage(i, 0, 0, null);
+        }
+                   
     }
 }
