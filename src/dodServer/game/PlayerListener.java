@@ -31,6 +31,10 @@ public interface PlayerListener {
      * Informs the listener that the player has won
      */
     public void win();
+    /**
+     * Informs the listener that the player has lose.
+     */
+    public void lose();
 
     /**
      * Informs the listener that the player has had a change in HP

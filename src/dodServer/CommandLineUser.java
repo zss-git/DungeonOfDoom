@@ -80,6 +80,10 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
     public void win() {
 	outputMessage("WIN", false);
     }
+    @Override
+    public void lose(){
+    	outputMessage("LOSE", false);
+    }
 
     /**
      * Informs the user that the player's hit points have changed

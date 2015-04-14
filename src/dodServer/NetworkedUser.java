@@ -77,6 +77,7 @@ public class NetworkedUser extends CommandLineUser{
 		    }
 		    catch (RuntimeException e){
 		    	System.err.println("Error with client at " + client.getInetAddress().getHostAddress() + ". Stopping client thread.");
+		    	e.printStackTrace();
 		    	break;
 		    }
 		}

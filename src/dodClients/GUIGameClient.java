@@ -12,7 +12,6 @@ public class GUIGameClient implements NetworkMessageListener{
 		JFrame mainFrame = new JFrame();
 		VisionPanel vp = new VisionPanel(7);
 		vp.writeArr();
-		mainFrame.setLayout(new GridBagLayout());
 		mainFrame.setSize(700, 700);
 		mainFrame.add(vp);
 		mainFrame.setVisible(true);

@@ -8,7 +8,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import dodServer.game.items.Armour;
 import dodServer.game.items.GameItem;
+import dodServer.game.items.Sword;
 
 /**
  * This class controls the game logic and interaction between players. Caution:
@@ -177,7 +179,7 @@ public class GameLogic {
      * @param playerID The ID of the player to generate the render hint for.
      * @return The render hint string to print to the client.
      */
-
+    
     /**
      * Handles the client message MOVE
      * 
@@ -227,52 +229,67 @@ public class GameLogic {
     /**
      * Handles the client message ATTACK
      * 
-     * Note: In the single player version of the game this doesn't do anything
-     * 
+     * Edited by Zachary Shannon: Implemented attacking in network game.
+     *  
      * @param direction
      *            The direction in which to attack
      * @return A message indicating the success or failure of the attack
      * @throws CommandException
      */
-    public synchronized void clientAttack(CompassDirection direction, int playerID)
-	    throws CommandException {
-	assertPlayerExists(playerID);
-	ensureNoWinner();
-	assertPlayersTurn(playerID);
-	assertPlayerAP(playerID);
-
-	// Work out which square we're targeting
-	// Location location =
-	// this.player.getLocation().locationAtCompassDirection(direction);
-
-	/**
-	 * TODO .... This code does not need to be filled in until Coursework 3!
-	 * 
-	 * 1. Work out which player the attack is on...
-	 * 
-	 * 2. Have you hit the target? - hint, you might want to make the chance
-	 * of a successful attack 75%?
-	 * 
-	 * 2.1 if the player has hit the target then hp of the target should be
-	 * reduced based on this formula...
-	 * 
-	 * damage = 1 + player.sword - target.armour
-	 * 
-	 * i.e. the damage inflicted is 1 + 1 if the player has a sword and - 1
-	 * if the target has armour.
-	 * 
-	 * Player and target are informed about the attack as set out in the
-	 * wire_spec
-	 * 
-	 * 2.2 if the player has missed the target then nothing happens.
-	 * Optionally, the player and target can be informed about the failed
-	 * attack
-	 * 
-	 */
-
-	throw new CommandException("attacking (" + direction.toString()
-		+ ") has not been implemented");
-    }
+    public synchronized void clientAttack(CompassDirection direction, int playerID) throws CommandException {
+		assertPlayerExists(playerID);
+		ensureNoWinner();
+		assertPlayersTurn(playerID);
+		assertPlayerAP(playerID);
+		
+		Player thisPlayer = this.players.get(playerID);
+	
+		// Work out which square we're targeting
+		Location location = thisPlayer.getLocation().atCompassDirection(direction);
+		
+		boolean someoneToAttack = false;
+		Player playerToAttack = null;
+		
+		//Look to see if there is a player present in the specified square.
+		for(Player p : players){
+			if(location.equals(p.getLocation())){
+				someoneToAttack = true;
+				playerToAttack = p;
+				break;
+			}
+		}
+		
+		if(someoneToAttack==true){
+			int dmg = 1; //By default the player does 1 damage.
+			Random rand = new Random();
+			
+			if(rand.nextInt(13) > 3){
+				
+				//If the player has a sword, they should do more damage.
+				if(thisPlayer.hasItem(new Sword())){
+					dmg++;
+				}
+				
+				//If the enemy has armour, they should take less damage.
+				if(playerToAttack.hasItem(new Armour())){
+					dmg--;
+				}
+				
+				playerToAttack.incrementHealth(-dmg);
+				
+				if(playerToAttack.getHp() < 1){
+					playerToAttack.kill();
+					playerToAttack.lose();
+				}
+			}
+			else{
+				throw new CommandException("You missed!!!");
+			}
+		}
+		else{
+			throw new CommandException("There is no one to attack here.");
+		}
+	    }
 
     /**
      * Handles the client message PICKUP. Generally it decrements AP, and gives

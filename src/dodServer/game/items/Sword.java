@@ -1,8 +1,7 @@
 package dodServer.game.items;
 
 /**
- * A class to represent sword. So far this does nothing, but if attacking is
- * implemented, it could increase the attack potential of a player.
+ * If a player is present, having a sword makes them do 1 more damage.
  */
 public class Sword extends GameItem {
     @Override

@@ -1,4 +1,4 @@
-package dodServer.game;
+	 package dodServer.game;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -283,6 +283,12 @@ public class Player implements GameItemConsumer {
      */
     public void win() {
 	this.listener.win();
+    }
+    /**
+     * Handle the player losing
+     */
+    public void lose(){
+    	this.listener.lose();
     }
 
     /**
