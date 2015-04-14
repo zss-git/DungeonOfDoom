@@ -179,6 +179,41 @@ public class GameLogic {
      * @param playerID The ID of the player to generate the render hint for.
      * @return The render hint string to print to the client.
      */
+  public String clientRenderHint(int playerID){
+    	
+    	//Get the player.
+    	assertPlayerExists(playerID);
+    	final Player player = this.players.get(playerID);
+    	
+    	//How far can the player see (how many replies should we expect to be sending?)
+    	final int distance = player.lookDistance();
+    	
+    	String renderHint = "";
+    	
+    	String lookReply = clientLook(playerID);
+    	
+    	//Clean up the look reply for processing.
+    	renderHint = lookReply.replaceAll("\\n", "");
+    	
+    	//Put it into a 2d array.
+    	char[][] lookArr = new char[(distance*2)+1][(distance*2)+1];
+    	
+    	int i = 0;
+    	for(int rowix = 0; rowix < (distance*2)+1; rowix++){
+    		for(int colix = 0; colix < (distance*2)+1; colix++){
+        		lookArr[rowix][colix] = lookReply.charAt(i);
+        		i++;
+    		}
+    	}
+    	
+    	for(int rowix = 0; rowix < (distance*2)+1; rowix++){
+    		for(int colix = 0; colix < (distance*2)+1; colix++){
+        		renderHint = renderHint + Integer.toString(colix - distance) + " " + Integer.toString(distance - rowix) + "\n";
+    		}
+    	}
+    	
+    	return renderHint;
+    } 
     
     /**
      * Handles the client message MOVE
@@ -502,6 +537,19 @@ public class GameLogic {
 	if (this.playerWon) {
 	    throw new CommandException("the game is over");
 	}
+    }
+    /**
+     * Provides appropriate renderhint for a given tile.
+     * @param square Tile symbol.
+     * @return Matching hint.
+     */
+    private String renderHint(char square){
+    	switch(square){
+    		case 'X':
+    			return "Unseen";
+    		case '#':
+    			return "Wall";
+    	}
     }
 
     private synchronized void startTurn() {
