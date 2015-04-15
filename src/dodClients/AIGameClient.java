@@ -45,7 +45,7 @@ public class AIGameClient implements NetworkMessageListener{
 	 */
 	public AIGameClient(){
 		Scanner scn = new Scanner(System.in);
-		new NetworkClient(NetworkClient.getAddress(scn), NetworkClient.getPort(scn), this);
+		new NetworkClient(CLUIGameClient.getAddress(scn), CLUIGameClient.getPort(scn), this);
 		scn.close();
 	}
 	/**
