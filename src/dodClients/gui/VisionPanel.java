@@ -23,8 +23,8 @@ public class VisionPanel extends JPanel {
 		BufferedImage tile = null;
 		BufferedImage player = null;
 		try {
-			tile = ImageIO.read(new File("Resources/emptyTile.png"));
-			player = ImageIO.read(new File("Resources/player.png"));
+			tile = ImageIO.read(new File("Resources/tilePlain.png"));
+			player = ImageIO.read(new File("Resources/sword.png"));
 		} catch (IOException e) {
 			System.err.println("There was an error whilst loading resources. Are some files corrupt?");
 			e.printStackTrace();

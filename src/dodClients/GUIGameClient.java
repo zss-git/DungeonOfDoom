@@ -18,10 +18,8 @@ public class GUIGameClient implements NetworkMessageListener{
 		vp.writeArr();
 		
 		//Add everything
-		mainFrame.setLayout(new GridLayout(2,2));
+		mainFrame.setLayout(new GridLayout(1,1));
 		mainFrame.add(vp);
-		mainFrame.add(new JButton("Test button - HELLO!"));
-		//mainFrame.setSize(700,700);
 		mainFrame.pack();
 		mainFrame.setVisible(true);
 	}
