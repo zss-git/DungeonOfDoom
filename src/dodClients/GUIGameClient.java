@@ -13,8 +13,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	private LookParser lp;
 	private VisionPanel vp;
 	
-
-	
 	/**
 	 * Creates an instance of this.
 	 * @param args
