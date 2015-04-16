@@ -11,8 +11,13 @@ import javax.swing.JPanel;
 
 public class VisionPanel extends JPanel {
 
+	private static final long serialVersionUID = -1963944153087665904L;
+
 	private int size;
 	
+	/**
+	 * Panel all the tiles live on.
+	 */
 	private JPanel gridPanel;
 	
 	//All the images that are drawn.
@@ -28,8 +33,10 @@ public class VisionPanel extends JPanel {
 	private BufferedImage player;
 	private BufferedImage enemy;
 
-	
-
+	/**
+	 * Sets up a new VisionPanel, loading in images and setting the size of the grid.
+	 * @param setSize size of the (must be square) grid.
+	 */
 	public VisionPanel(int setSize){
 		
 		//This is a bit hacky, but makes it so that the tiles don't clip or move around.
@@ -68,7 +75,8 @@ public class VisionPanel extends JPanel {
 	 * Change the size. Must redraw afterwards.
 	 * @param size Size to change to.
 	 */
-	public void changeSize(int size){
+	public void changeSize(int setSize){
+		size = setSize;
 		gridPanel.removeAll();
 		gridPanel.setLayout(new GridLayout(size, size));
 		writeArr();
@@ -83,6 +91,9 @@ public class VisionPanel extends JPanel {
 		this.validate();
 		this.repaint();	
 	}
+	/**
+	 * Writes empty tile image to all tiles on the panel.
+	 */
 	public void writeArr(){	
 		gridPanel.removeAll();
 		for(int i = 0; i < (size*size); i++){
@@ -91,6 +102,11 @@ public class VisionPanel extends JPanel {
 			gridPanel.add(imgFrame);
 		}
 	}
+	/**
+	 * Writes a char representation of a part of a Dungeon Of Doom map to the panel.
+	 * Extension for later - throw an exception if the array is the wrong size.
+	 * @param arr Char array containing char representation of this panel, same size as this panel.
+	 */
 	public void writeArr(char[][] arr){	
 		
 		gridPanel.removeAll();

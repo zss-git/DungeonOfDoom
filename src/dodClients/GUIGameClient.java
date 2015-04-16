@@ -9,6 +9,8 @@ import dodClients.gui.VisionPanel;
 
 public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	
+	private static final long serialVersionUID = 2360372200249180419L;
+	
 	private Scanner scn;
 	private LookParser lp;
 	private VisionPanel vp;
@@ -58,7 +60,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				vp.changeSize(look[0].length);
 				vp.writeArr(look);
 				
-				//Refresh UI elements and revalidate.
+				//Refresh UI elements and re-validate.
 				vp.refresh();
 				this.validate();
 				this.repaint();
