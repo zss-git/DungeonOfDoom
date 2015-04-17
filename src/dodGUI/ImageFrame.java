@@ -8,7 +8,7 @@
  * @version 14 Apr 2015
  */
 
-package dodClients.gui;
+package dodGUI;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
