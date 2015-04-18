@@ -61,6 +61,18 @@ public class NetworkClient {
 		}
 	}
 	/**
+	 * Returns whether or not the client has been stopped.
+	 * @return True if stopped, false if not.
+	 */
+	public boolean stopped(){
+		if(runInputThread == false && runOutputThread == false){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	/**
 	 * Called to start up the thread which reads from the host.
 	 */
 	private void startInputThread(){
@@ -72,6 +84,8 @@ public class NetworkClient {
 					} catch (IOException e) {
 						//Something has gone wrong - this probably means we've disconnected.
 						System.err.println("Error reading from the host.");
+						runInputThread = false;
+						runOutputThread = false;
 					}
 				}
 			}

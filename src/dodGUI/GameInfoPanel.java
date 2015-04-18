@@ -40,6 +40,8 @@ public class GameInfoPanel extends JPanel {
 		gold = defaultGold;
 		hp = defaultHp;
 		
+		goldWin = 0; //Placeholder.
+		
 		//Construct labels.
 		goldWinLabel = new JLabel("Need: ?g");
 		goldLabel = new JLabel("Have: " + gold + "g");
@@ -65,6 +67,14 @@ public class GameInfoPanel extends JPanel {
 	public void setWinGold(int goldWinSet){
 		goldWin = goldWinSet;
 		goldWinLabel.setText("Need: " + goldWin + "g");	
+	}
+	
+	/**
+	 * Gets how much gold needed to win.
+	 * @return How much gold the player needs to win.
+	 */
+	public int getWinGold(){
+		return goldWin;
 	}
 	
 	/**

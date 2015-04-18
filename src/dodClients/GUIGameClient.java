@@ -41,6 +41,12 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	private ActionListener commandAl = new ActionListener(){
 		
 		public void actionPerformed(ActionEvent event) {
+			
+			if(nc.stopped() == true){
+				infoPanel.println("No longer connected to server.");
+				return;
+			}
+			
 			try{
 				messageStack.put("LOOK");
 				
@@ -232,6 +238,25 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			//Modification to amount of health.
 			message = message.replace("HITMOD ", "");			
 			infoPanel.modifyHp(parseInt(message));
+		}
+		else if(message.startsWith("WIN")){
+			//The player won the game.
+			JOptionPane.showMessageDialog(this, "You won!");
+			infoPanel.println("You won the game!");
+			
+		}
+		else if(message.startsWith("LOSE")){
+			//The player lost the game.
+			infoPanel.println("You lost... disconnecting.");
+			
+			if(infoPanel.getHp() <= 0){
+				JOptionPane.showMessageDialog(this, "You died.");
+			}
+			else{
+				JOptionPane.showMessageDialog(this, "You lost.");
+			}
+			
+			nc.stopClient(); //Stop the client.
 		}
 
 	}
