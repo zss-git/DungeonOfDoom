@@ -18,7 +18,7 @@ import java.util.Deque;
 
 import javax.swing.JLabel;
 
-public class ImageFrame extends JLabel {
+public class ImagePanel extends JLabel {
 	
 	private static final long serialVersionUID = -5198242419485658270L;
 

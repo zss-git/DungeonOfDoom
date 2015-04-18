@@ -97,7 +97,7 @@ public class VisionPanel extends JPanel {
 	public void writeArr(){	
 		gridPanel.removeAll();
 		for(int i = 0; i < (size*size); i++){
-			ImageFrame imgFrame = new ImageFrame();
+			ImagePanel imgFrame = new ImagePanel();
 			imgFrame.addImage(tile);
 			gridPanel.add(imgFrame);
 		}
@@ -114,7 +114,7 @@ public class VisionPanel extends JPanel {
 		for(int rowix = 0; rowix < arr[0].length; rowix++){
 			for(int colix = 0; colix < arr[0].length; colix++){
 				
-				ImageFrame imgFrame = new ImageFrame();
+				ImagePanel imgFrame = new ImagePanel();
 			
 				switch(arr[rowix][colix]){
 					case '.':

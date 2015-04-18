@@ -16,6 +16,11 @@ public class LookParser {
 	 * @return true if part of a look reply, false if not (and might be something else).
 	 */
 	public boolean isPartOfLook(String message){
+		//Handle null stuff.
+		if(message == null){
+			return false;
+		}
+		
 		//Waits for a look.
 		if(message.startsWith("LOOKREPLY")){			
 			//Further messages after this one will be part of the look reply.

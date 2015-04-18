@@ -1,0 +1,16 @@
+- Set name?
+
+Buttons:
+Pickup
+End Turn
+Change Server
+Quit
+
+Information:
+Gold needed to win.
+Health.
+Gold.
+AP
+Lose/win.
+
+If a user (well client basically) has disconnected, the

@@ -21,6 +21,9 @@ public class NetworkClient {
 	private PrintWriter wrtr;
 	private NetworkMessageListener listener;
 	
+	private boolean runInputThread = true;
+	private boolean runOutputThread = true;
+	
 	
 	/**
 	 * Constructor - sets up the connection.
@@ -46,18 +49,29 @@ public class NetworkClient {
 		startOutputThread();
 	}
 	/**
+	 * Stops the client from running by ditching both the input and output threads then closing the socket.
+	 */
+	public void stopClient(){
+		runInputThread = false;
+		runOutputThread = false;
+		try {
+			sckt.close();
+		} catch (IOException e) {
+			System.err.println("Failed to close old client socket!!! Maybe it is already closed?");
+		}
+	}
+	/**
 	 * Called to start up the thread which reads from the host.
 	 */
 	private void startInputThread(){
 		(new Thread(){
 			public void run(){
-				while(true){
+				while(runInputThread){
 					try {
 						listener.handleMessage(rdr.readLine());
 					} catch (IOException e) {
-						//Something has gone wrong.
+						//Something has gone wrong - this probably means we've disconnected.
 						System.err.println("Error reading from the host.");
-						System.exit(1);
 					}
 				}
 			}
@@ -70,13 +84,8 @@ public class NetworkClient {
 	private void startOutputThread(){
 		(new Thread(){
 			public void run(){
-				while(true){
+				while(runOutputThread){
 					String cmd = listener.getMessage();
-					
-					//Check for eof
-					if(cmd == null){
-						System.exit(0); //Exit nicely.
-					}
 					wrtr.println(cmd);
 				}
 			}
