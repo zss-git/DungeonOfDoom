@@ -2,6 +2,7 @@ package dodClients;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
@@ -9,16 +10,19 @@ import java.net.UnknownHostException;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
 
 import dodGUI.GameInfoPanel;
-import dodGUI.OutputPanel;
+import dodGUI.ItemInfoPanel;
 import dodGUI.VisionPanel;
 
 public class GUIGameClient extends JFrame implements NetworkMessageListener{
@@ -27,32 +31,42 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	
 	private LookParser lp;
 	private VisionPanel vp;
-	private OutputPanel messageOutput;
 	private GameInfoPanel infoPanel;
+	private ItemInfoPanel itemPanel;
 	
 	private NetworkClient nc;
 	
+	
+	
 	private ActionListener commandAl = new ActionListener(){
 		
-		public void actionPerformed(ActionEvent e) {
-			messageStack.push("LOOK");
-			
-			String command = e.getActionCommand();
-			
-			if(command != null){
-				messageStack.push(e.getActionCommand());
+		public void actionPerformed(ActionEvent event) {
+			try{
+				messageStack.put("LOOK");
+				
+				String command = event.getActionCommand();
+				
+				if(command != null){
+					messageStack.put(event.getActionCommand());
+				}
+				
+				messageStack.put("LOOK");
 			}
-			
-			messageStack.push("LOOK");
+			catch(InterruptedException except){
+				
+			}
 		}
-	}; //Simple action listener that just feeds whatever is set as the 'action command' to the stack.
+	}; //Action listener for talking to the server.
 	
-	private BlockingDeque<String> messageStack = new LinkedBlockingDeque<String>();
-	private String lastMessageHandled;
+	//This 'message stack' can be pushed to in order to queue up a command to be sent to the server.
+	private BlockingDeque<String> messageStack = new LinkedBlockingDeque<String>(1);
 	
+	private String commandWaitingForResponse = ""; //Commands that are awaiting a response are put here - and cleared when the response is received.
+	private boolean waitingForResponse = false; //Tells the message getting thread if it should wait.
+		
 	/**
 	 * Start new clientGUI.
-	 * @param args
+	 * @param args CL arguments.
 	 */
 	public static void main(String[] args){
 		
@@ -69,60 +83,53 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 */
 	public GUIGameClient(){
 		
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Exit on close.
+		
 		//Get IP address and port.
 		String address = getIPAddress();
 		int port = getPort();
 		
-		//Start the look parser and game info panel
+		//Start the look parser and game info panel and item info panel.
 		lp = new LookParser();
 		infoPanel = new GameInfoPanel();
+		itemPanel = new ItemInfoPanel();
 		
 		//Holds all the icons.
 		vp = new VisionPanel(5);
 		vp.writeArr();
 		
-		//Set up message output area.
-		messageOutput = new OutputPanel();
-		messageOutput.println("****Game Begins****");
-		
 		//Setup this underlying main pane.
-		SpringLayout mainLayout = new SpringLayout();
-		this.setLayout(mainLayout);
-		this.setSize(600, 600);
+		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
+		this.setSize(600, 550);
+		this.setMinimumSize(new Dimension(600, 550));
 		this.setVisible(true);
 		
-		JPanel topPanel = createTopPanel();
-		JPanel gameActionPanel = createGameActionPanel();
 		
-		//Add everything to this panel.
-		this.add(topPanel);
-		this.add(gameActionPanel);
-		this.add(messageOutput);
+		this.setJMenuBar(createMenuBar());
+		
+		//Add everything to this panel - including struts and glue.
+		this.add(Box.createVerticalGlue());
+		this.add(createTopPanel());
+		this.add(Box.createVerticalStrut(5));
+		this.add(Box.createVerticalGlue());
+		this.add(createGameActionPanel());
+		this.add(Box.createVerticalGlue());
 		this.add(infoPanel);
-		
-		//Set all the springs.
-		//Vertically - 3 pixels apart
-		mainLayout.putConstraint(SpringLayout.NORTH, topPanel, 3, SpringLayout.NORTH, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.NORTH, gameActionPanel, 3, SpringLayout.SOUTH, topPanel);
-		mainLayout.putConstraint(SpringLayout.NORTH, infoPanel, 3, SpringLayout.SOUTH, gameActionPanel);
-		mainLayout.putConstraint(SpringLayout.NORTH, messageOutput, 3, SpringLayout.SOUTH, infoPanel);
-		mainLayout.putConstraint(SpringLayout.SOUTH, messageOutput, 3, SpringLayout.SOUTH, this.getContentPane());
-		
-		//Horizontally - 3 pixels from edges.
-		mainLayout.putConstraint(SpringLayout.WEST, topPanel, 3, SpringLayout.WEST, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.EAST, topPanel, 3, SpringLayout.EAST, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.WEST, gameActionPanel, 3, SpringLayout.WEST, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.EAST, gameActionPanel, 3, SpringLayout.EAST, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.WEST, infoPanel, 3, SpringLayout.WEST, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.EAST, infoPanel, 3, SpringLayout.EAST, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.WEST, messageOutput, 3, SpringLayout.WEST, this.getContentPane());
-		mainLayout.putConstraint(SpringLayout.EAST, messageOutput, 3, SpringLayout.EAST, this.getContentPane());
+		this.add(Box.createVerticalGlue());
+		this.add(itemPanel);
+		this.add(Box.createVerticalGlue());
 		
 		//Connect to client.
 		nc = new NetworkClient(address, port, this);
-		messageOutput.println("Connected to server: " + address + ":" + port);
+		infoPanel.println("Connected to server: " + address + ":" + port);
 		
-		messageStack.push("LOOK"); //Look (and so draw the map).
+		try {
+			messageStack.put("HELLO " + getPlayerName()); //Say hello
+			messageStack.put("LOOK"); //Look (and so draw the map).
+		} catch (InterruptedException e) {
+		}
+		
+		
 		
 	}
 	
@@ -132,8 +139,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 */
 	@Override
 	public void handleMessage(String message) {
-		
-		//messageOutput.println(message);
 		
 		if(lp.isPartOfLook(message)){
 			//Check if the parser is done.
@@ -150,26 +155,68 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		}
 		else if(message.startsWith("MESSAGE")){
 			//Informational message for the user.
+			commandWaitingForResponse = "";
+			
 			message = message + " ";
 			message = message.replace("MESSAGE ", "");
-			messageOutput.println(message);	
+			infoPanel.println(message);	
 		}
 		else if(message.startsWith("FAIL")){
 			//Failure message for the user.
+			commandWaitingForResponse = "";
+			
 			message = message + " ";
 			message = message.replace("FAIL ", "");
-			messageOutput.println(message);
+			infoPanel.println("Failed!: " + message);
 		}
 		else if(message.startsWith("SUCCESS")){
 			//Success message for the user (smarter handling).
-			if(lastMessageHandled.startsWith("MOVE ") == false){ //there is no point printing success for move, as the player already gets feedback for this.
-				message = message.replace("SUCCESS", "");
-				messageOutput.println("Success! " + message);
+			message = message.replace("SUCCESS", "");
+			
+			//If we are responding to an attack message...
+			if(commandWaitingForResponse.startsWith("ATTACK")){
+				commandWaitingForResponse = "";
+				
+				infoPanel.println("Attack hit! " + message);
+			}
+			else if(commandWaitingForResponse.startsWith("MOVE")){ //If responding to a move message...
+				String respondDirection = commandWaitingForResponse.replace("MOVE ", "");
+				commandWaitingForResponse = "";
+				
+				infoPanel.println("Moved " + respondDirection);
+			}
+			else if(commandWaitingForResponse.startsWith("PICKUP")){
+				commandWaitingForResponse = "";
+				
+				//Handle pickup code here.
+				char[][] lookArr = lp.getLook();
+				char centerChar = lookArr[(lookArr[0].length-1)/2][(lookArr[0].length-1)/2];
+				
+				if(centerChar == 'L'){
+					infoPanel.println("Picked up lantern.");
+					itemPanel.gotLantern();
+				}
+				else if(centerChar == 'A'){
+					infoPanel.println("Picked up armour.");
+					itemPanel.gotArmour();
+				}
+				else if(centerChar == 'S'){
+					infoPanel.println("Picked up sword.");
+					itemPanel.gotSword();
+				}
 			}
 		}
 		else if(message.startsWith("STARTTURN")){
 			//Players turn begins.
-			messageOutput.println("It is now your turn.");
+			infoPanel.println("It is now your turn.");
+		}
+		else if(message.startsWith("ENDTURN")){
+			//Players turn ends.
+			infoPanel.println("End of turn.");
+		}
+		else if(message.startsWith("HELLO")){
+			commandWaitingForResponse = "";
+			infoPanel.println("Hello, " + message.replaceAll("HELLO ", ""));
 		}
 		else if(message.startsWith("GOLD")){
 			//Amount of gold needed to win received.
@@ -186,18 +233,41 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			message = message.replace("HITMOD ", "");			
 			infoPanel.modifyHp(parseInt(message));
 		}
-		
-		lastMessageHandled = message;
 
 	}
 	/**
-	 * Implementation of message getting part of the NetworkMessageListener. Gives the server a command when buttons are pressed.
+	 * Implementation of message getting part of the NetworkMessageListener. Gives the server a command from the stack.
 	 */
 	@Override
 	public String getMessage() {
 		try {
-			//Blocks until something is available.
+			String lastMessage = messageStack.peekLast();
+			
+			if(lastMessage == null){
+				lastMessage = "";
+			}
+			
+			//If we aren't waiting for a response right now, and whatever is on the queue we should wait for, then start waiting.
+			if(shouldWaitForResponse(lastMessage) && waitingForResponse == false){
+				waitingForResponse = true;
+				commandWaitingForResponse = lastMessage;
+				return lastMessage;		
+			}
+			
+			//If we are waiting for a response, check to see if it has been handled. If it has, sort out the queue, then return nothing again.
+			if(waitingForResponse == true){
+				
+				if(commandWaitingForResponse == ""){
+					waitingForResponse = false;
+					messageStack.pop();
+				}
+				return "";
+			}
+			
+			//Wait for a command.
 			return messageStack.take();
+			
+			
 		} catch (InterruptedException e) {
 			return "";
 		}
@@ -215,6 +285,10 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		while(true){
 			address = JOptionPane.showInputDialog("Enter the IP address of the server to connect to:"); //Prompt the user.
 			
+			if(address == null){
+				System.exit(0); //Null input should mean the user wants the client to quit.
+			}
+
 			//Cast to an Inetaddress and look for exceptions.
 			try {
 				InetAddress.getByName(address);
@@ -228,6 +302,18 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		return address;
 	}
 	/**
+	 * Gets the name from the user.
+	 */
+	private String getPlayerName(){
+		String name = JOptionPane.showInputDialog("Enter your name:"); //Prompt the user.
+		
+		if(name == null){
+			name = "player"; //Null input means we can just use some random name.
+		}
+		
+		return name;
+	}
+	/**
 	 * Gets a port, double checks it is valid.
 	 * @return
 	 */
@@ -236,7 +322,13 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		
 		while(port < 0){
 			try{
-				port = Integer.parseInt(JOptionPane.showInputDialog("Enter the port number for the server to connect to:"));
+				String userInput = JOptionPane.showInputDialog("Enter the port number for the server to connect to:");
+				if(userInput == null){
+					System.exit(0); //Null input should mean the user wants the client to quit.
+				}
+				else{
+					port = Integer.parseInt(userInput);
+				}
 			}
 			catch(NumberFormatException e){
 				JOptionPane.showMessageDialog(this, "This port was not valid.");
@@ -317,18 +409,21 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		attackToggle.addActionListener(toggleAl);
 		JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.LINE_AXIS));
+		topPanel.add(Box.createHorizontalGlue());
 		topPanel.add(vp);
+		topPanel.add(Box.createHorizontalGlue());
 		topPanel.add(nav);
+		topPanel.add(Box.createHorizontalGlue());
 		
 		return topPanel;
 	}
 	/**
-	 * Creates a jpanel containing buttons for in game actions.
+	 * Creates a JPanel containing buttons for in game actions.
 	 * @return
 	 */
 	private JPanel createGameActionPanel(){
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
+		//buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
 		
 		//Create JButtons - in game actions.
 		JButton pickup = new JButton("Pickup");
@@ -337,6 +432,29 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		endTurn.setActionCommand("ENDTURN");
 		pickup.addActionListener(commandAl);
 		endTurn.addActionListener(commandAl);
+		
+		this.add(Box.createHorizontalStrut(1));
+		buttonPanel.add(pickup);
+		this.add(Box.createHorizontalStrut(1));
+		buttonPanel.add(endTurn);
+		this.add(Box.createHorizontalStrut(1));
+		
+		return buttonPanel;
+	}
+	
+	/**
+	 * Creates the menu bar for this gui.
+	 * @return Menu bar created.
+	 */
+	private JMenuBar createMenuBar(){
+		JMenuBar menuBar = new JMenuBar();
+		
+		//Create 'game' menu.
+		JMenu game = new JMenu("Game");
+		
+		//Create menu items.
+		JMenuItem newGame = new JMenuItem("Switch Server");
+		JMenuItem quitGame = new JMenuItem("Quit");
 		
 		//Action listener to quit the game.
 		ActionListener quitGameAl = new ActionListener(){
@@ -360,17 +478,15 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			}
 		};
 		
-		JButton newGame = new JButton("Switch Server");
-		JButton quitGame = new JButton("Quit");
 		newGame.addActionListener(newGameAl);
 		quitGame.addActionListener(quitGameAl);
 		
-		buttonPanel.add(pickup);
-		buttonPanel.add(endTurn);
-		buttonPanel.add(newGame);
-		buttonPanel.add(quitGame);
+		game.add(newGame);
+		game.add(quitGame);
+		menuBar.add(game);
 		
-		return buttonPanel;
+		
+		return menuBar;
 	}
 	
 	/**
@@ -389,5 +505,18 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			
 		}
 		return val;
+	}
+	/**
+	 * Given a server command, returns whether or not the client should wait for a response for that command.
+	 * @param command Command to check.
+	 * @return True if should wait for response, false otherwise.
+	 */
+	private boolean shouldWaitForResponse(String command){
+		if(command.startsWith("ATTACK") || command.startsWith("MOVE") || command.startsWith("PICKUP") || command.startsWith("HELLO")){
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 }

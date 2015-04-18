@@ -5,10 +5,7 @@
 
 package dodGUI;
 
-import java.awt.Color;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
+import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -20,6 +17,7 @@ public class GameInfoPanel extends JPanel {
 	private JLabel goldWinLabel;
 	private JLabel goldLabel;
 	private JLabel healthLabel;
+	private JLabel infoLabel;
 	
 	private int goldWin;
 	
@@ -35,7 +33,8 @@ public class GameInfoPanel extends JPanel {
 	 * Creates a new instance.
 	 */
 	public GameInfoPanel(){
-		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+		
+		//this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 		
 		//Make all tracked values their defaults.
 		gold = defaultGold;
@@ -45,14 +44,18 @@ public class GameInfoPanel extends JPanel {
 		goldWinLabel = new JLabel("Need: ?g");
 		goldLabel = new JLabel("Have: " + gold + "g");
 		healthLabel = new JLabel(hp + "hp");
+		infoLabel = new JLabel("info");
 		
-		goldWinLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-		goldLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-		healthLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-		
+		//Add everything and the spacers.
+		this.add(Box.createHorizontalStrut(1));
 		this.add(goldWinLabel);
+		this.add(Box.createHorizontalStrut(1));
 		this.add(goldLabel);
+		this.add(Box.createHorizontalStrut(1));
 		this.add(healthLabel);
+		this.add(Box.createHorizontalStrut(30));
+		this.add(infoLabel);
+		this.add(Box.createHorizontalStrut(1));
 	}
 	
 	/**
@@ -96,6 +99,16 @@ public class GameInfoPanel extends JPanel {
 	 */
 	public int getHp(){
 		return hp;
+	}
+	
+	/**
+	 * Sets the info label.
+	 * @param prt New value of info label.
+	 */
+	public void println(String prt){
+		infoLabel.setText(prt);
+		this.validate();
+		this.repaint();
 	}
 	
 }

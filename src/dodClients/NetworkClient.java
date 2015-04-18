@@ -86,7 +86,9 @@ public class NetworkClient {
 			public void run(){
 				while(runOutputThread){
 					String cmd = listener.getMessage();
-					wrtr.println(cmd);
+					if(cmd != "" && cmd != null){
+						wrtr.println(cmd);
+					}
 				}
 			}
 		}).start();
