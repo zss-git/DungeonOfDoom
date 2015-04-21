@@ -570,31 +570,4 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			return false;
 		}
 	}
-//	/**
-//	 * Called to start up a thread that kills the client after a while - timeout.
-//	 * @param Time to wait for (milliseconds)
-//	 */
-//	private void selfDestruct(int milliseconds){
-//		(new Thread(){
-//			public void run(){	
-//				
-//				synchronized(waitObj){
-//					//Sleep for a bit.
-//					try {
-//						wait(milliseconds);
-//					} catch (InterruptedException e1) {
-//		
-//					}
-//					
-//					//Time out occured.
-//					nc.stopClient();
-//					infoPanel.println("Command timed out.");
-//					waitingForResponse = false;
-//					commandWaitingForResponse = "";
-//					messageStack.pop();
-//				}
-//
-//			}
-//		}).start();
-//	}
 }
