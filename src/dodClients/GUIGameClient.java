@@ -7,12 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -28,6 +24,7 @@ import javax.swing.SwingUtilities;
 import dodGUI.GameInfoPanel;
 import dodGUI.ItemInfoPanel;
 import dodGUI.VisionPanel;
+import dodUtil.Interrupter;
 
 public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	
@@ -74,8 +71,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	private String commandWaitingForResponse = ""; //Commands that are awaiting a response are put here - and cleared when the response is received.
 	private boolean waitingForResponse = false; //Tells the message getting thread if it should wait.
 	
-	private ScheduledThreadPoolExecutor timer;
-	private Runnable timeOut; //Time out timertask thread.
+	private Interrupter interrupter;
 	
 	/**
 	 * Start new clientGUI.
@@ -98,12 +94,8 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Exit on close.
 		
-		//Timer
-		timer = new ScheduledThreadPoolExecutor(1);
-		
-		//Time out task.
-		timeOut = new Runnable(){
-			
+		//Create new interrupter and associated runnable.
+		interrupter = new Interrupter(new Runnable(){
 			public void run(){
 				nc.stopClient();
 				infoPanel.println("Command timed out.");
@@ -112,11 +104,14 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				messageStack.pop();
 			}
 			
-		};
+		});
 		
 		//Get IP address and port.
 		String address = getIPAddress();
 		int port = getPort();
+		
+		//Get the player name.
+		String playerName = getPlayerName();
 		
 		//Start the look parser and game info panel and item info panel.
 		lp = new LookParser();
@@ -129,8 +124,8 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		
 		//Setup this underlying main pane.
 		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
-		this.setSize(600, 550);
-		this.setMinimumSize(new Dimension(600, 550));
+		this.setSize(700, 600);
+		this.setMinimumSize(new Dimension(700, 600));
 		this.setVisible(true);
 		
 		
@@ -153,7 +148,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		infoPanel.println("Connected to server: " + address + ":" + port);
 		
 		try {
-			messageStack.put("HELLO " + getPlayerName()); //Say hello
+			messageStack.put("HELLO " + playerName); //Say hello
 			messageStack.put("LOOK"); //Look (and so draw the map).
 		} catch (InterruptedException e) {
 		}
@@ -303,7 +298,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				commandWaitingForResponse = lastMessage;
 				
 				//Schedule a timeout.
-				timer.schedule(timeOut, 500, TimeUnit.MILLISECONDS);
+				interrupter.interruptIn(500);
 				return lastMessage;		
 			}
 			
@@ -315,7 +310,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 					messageStack.pop();
 					
 					//Tell the client it doesn't have to self destruct, then refresh the timer.
-					timer.shutdownNow();
+					interrupter.cancel();
 				}
 				return "";
 			}
