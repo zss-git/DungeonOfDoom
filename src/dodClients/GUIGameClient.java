@@ -7,8 +7,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -69,7 +73,10 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	
 	private String commandWaitingForResponse = ""; //Commands that are awaiting a response are put here - and cleared when the response is received.
 	private boolean waitingForResponse = false; //Tells the message getting thread if it should wait.
-		
+	
+	private ScheduledThreadPoolExecutor timer;
+	private Runnable timeOut; //Time out timertask thread.
+	
 	/**
 	 * Start new clientGUI.
 	 * @param args CL arguments.
@@ -90,6 +97,22 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	public GUIGameClient(){
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Exit on close.
+		
+		//Timer
+		timer = new ScheduledThreadPoolExecutor(1);
+		
+		//Time out task.
+		timeOut = new Runnable(){
+			
+			public void run(){
+				nc.stopClient();
+				infoPanel.println("Command timed out.");
+				waitingForResponse = false;
+				commandWaitingForResponse = "";
+				messageStack.pop();
+			}
+			
+		};
 		
 		//Get IP address and port.
 		String address = getIPAddress();
@@ -134,9 +157,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			messageStack.put("LOOK"); //Look (and so draw the map).
 		} catch (InterruptedException e) {
 		}
-		
-		
-		
+
 	}
 	
 
@@ -145,6 +166,10 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 */
 	@Override
 	public void handleMessage(String message) {
+		
+		if(message == null){
+			
+		}
 		
 		if(lp.isPartOfLook(message)){
 			//Check if the parser is done.
@@ -276,6 +301,9 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			if(shouldWaitForResponse(lastMessage) && waitingForResponse == false){
 				waitingForResponse = true;
 				commandWaitingForResponse = lastMessage;
+				
+				//Schedule a timeout.
+				timer.schedule(timeOut, 500, TimeUnit.MILLISECONDS);
 				return lastMessage;		
 			}
 			
@@ -285,6 +313,9 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				if(commandWaitingForResponse == ""){
 					waitingForResponse = false;
 					messageStack.pop();
+					
+					//Tell the client it doesn't have to self destruct, then refresh the timer.
+					timer.shutdownNow();
 				}
 				return "";
 			}
@@ -544,4 +575,31 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			return false;
 		}
 	}
+//	/**
+//	 * Called to start up a thread that kills the client after a while - timeout.
+//	 * @param Time to wait for (milliseconds)
+//	 */
+//	private void selfDestruct(int milliseconds){
+//		(new Thread(){
+//			public void run(){	
+//				
+//				synchronized(waitObj){
+//					//Sleep for a bit.
+//					try {
+//						wait(milliseconds);
+//					} catch (InterruptedException e1) {
+//		
+//					}
+//					
+//					//Time out occured.
+//					nc.stopClient();
+//					infoPanel.println("Command timed out.");
+//					waitingForResponse = false;
+//					commandWaitingForResponse = "";
+//					messageStack.pop();
+//				}
+//
+//			}
+//		}).start();
+//	}
 }

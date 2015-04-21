@@ -91,7 +91,6 @@ public class NetworkClient {
 			}
 		}).start();
 	}
-
 	/**
 	 * Called to start up the thread which sends to the host.
 	 */
