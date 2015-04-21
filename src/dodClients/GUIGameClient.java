@@ -371,7 +371,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	private int getPort(){
 		int port = -1;
 		
-		while(port < 0){
+		while(port < 0 || port > 65535){
 			try{
 				String userInput = JOptionPane.showInputDialog("Enter the port number for the server to connect to:");
 				if(userInput == null){
