@@ -178,6 +178,8 @@ public class GameLogic {
      * Move the player in the specified direction - assuming there isn't a wall
      * in the way
      * 
+     * Made some modifications to this so that it 
+     * 
      * @param direction
      *            The direction (NESW) to move the player
      * @return An indicator of the success or failure of the movement.
@@ -196,6 +198,9 @@ public class GameLogic {
 	// Work out where the move would take the player
 	final Location location = player.getLocation().atCompassDirection(
 		direction);
+	
+	//The players current location
+	final Location curLocation = player.getLocation();
 
 	// Ensure that the movement is within the bounds of the map and not
 	// into a wall
@@ -213,6 +218,8 @@ public class GameLogic {
 
 	// Move the player
 	player.setLocation(location);
+	
+	notifyPlayersOfChange(location, curLocation, playerID); //Notify of changes on squares.
 
 	advanceTurn(playerID);
 	return;
@@ -316,7 +323,7 @@ public class GameLogic {
 
 	player.giveItem(item);
 	playersTile.removeItem();
-
+	
 	advanceTurn(playerID);
     }
 
@@ -494,6 +501,56 @@ public class GameLogic {
 	if (this.playerWon) {
 	    throw new CommandException("the game is over");
 	}
+    }
+    /**
+     * Notify all players of changes to a tile - Zachary Shannon
+     * 
+     * @param changedLocation The location at which the change has occurred.
+     * @param secondLocation Another location at which a change may have occurred
+     * @param playerID The ID of the current player.
+     */
+    private void notifyPlayersOfChange(Location changedLocation, int playerID){
+    	notifyPlayersOfChange(changedLocation, changedLocation, playerID);
+    }
+    /**
+     * Notify all players of changes to multiple tiles - Zachary Shannon
+     * 
+     * @param changedLocation The location at which the change has occurred.
+     * @param secondLocation Another location at which a change may have occurred
+     * @param playerID The ID of the current player.
+     */
+    private void notifyPlayersOfChange(Location firstLocation, Location secondLocation, int playerID){
+    	//Iterate through all the players
+    	for(Player p: players){
+    		Location playerLocation = p.getLocation();
+    		
+    		//Calculate offsets.
+    		int firstRowOffset = playerLocation.getRow() - firstLocation.getRow();
+    		int firstColOffset = playerLocation.getCol() - firstLocation.getCol();
+    		
+    		int secondRowOffset = playerLocation.getRow() - secondLocation.getRow();
+    		int secondColOffset = playerLocation.getCol() - secondLocation.getCol();
+    		
+    		//Correct column offsets.
+    		if(firstColOffset > 0){
+    			firstColOffset++;
+    		}
+    		else{
+    			firstColOffset--;
+    		}
+    		
+    		if(secondColOffset > 0){
+    			secondColOffset++;
+    		}
+    		else{
+    			secondColOffset--;
+    		}
+    				
+    		//Can the player see the tiles?
+    		if(p.canSeeTile(firstRowOffset, firstColOffset) || p.canSeeTile(secondRowOffset, secondColOffset)){
+    			p.lookChange(); //Notify them.
+    		}
+    	}
     }
     private synchronized void startTurn() {
 	this.players.get(this.currentPlayer).startTurn();

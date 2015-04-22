@@ -278,6 +278,13 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			
 			nc.stopClient(); //Stop the client.
 		}
+		else if(message.startsWith("CHANGE")){
+			//Look again.
+			try {
+				messageStack.put("LOOK");
+			} catch (InterruptedException e) {
+			}
+		}
 
 	}
 	/**

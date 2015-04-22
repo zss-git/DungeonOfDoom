@@ -84,6 +84,13 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
     public void lose(){
     	outputMessage("LOSE", false);
     }
+    
+    /**
+     * Informs the user that what the player can see has changed.
+     */
+    public void lookChange(){
+    	outputMessage("CHANGE", false);
+    }
 
     /**
      * Informs the user that the player's hit points have changed

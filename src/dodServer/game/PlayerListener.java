@@ -35,6 +35,11 @@ public interface PlayerListener {
      * Informs the listener that the player has lose.
      */
     public void lose();
+    
+    /**
+     * Inform the listener that the area of the map they can see has changed in some way - Zachary Shannon
+     */
+    public void lookChange();
 
     /**
      * Informs the listener that the player has had a change in HP
@@ -52,4 +57,5 @@ public interface PlayerListener {
      *            the amount of gold gained or lost
      */
     public void treasureChange(int value);
+ 
 }

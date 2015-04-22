@@ -295,7 +295,14 @@ public class Player implements GameItemConsumer {
      * Kills the player, effectively setting their hp to zero.
      */
     public void kill() {
-	this.hp = 0;
+    	this.hp = 0;
+    }
+    
+    /**
+     * Tells the player that what they can see has changed.
+     */
+    public void lookChange(){
+    	this.listener.lookChange();
     }
 
     /**
