@@ -5,10 +5,13 @@ package dodServer.game.items;
  * 
  */
 public final class Gold extends GameItem {
+	
+	int val = 1;
+	
     @Override
     public void processPickUp(GameItemConsumer player) {
 	// Give the player gold
-	player.addGold(1);
+	player.addGold(val);
     }
 
     @Override
@@ -27,5 +30,20 @@ public final class Gold extends GameItem {
     @Override
     public char toChar() {
 	return 'G';
+    }
+    
+    /**
+     * Changes the value of this gold
+     * @param val New value of the gold to set.
+     */
+    public void setValue(int newVal){
+    	val = newVal;
+    }
+    /**
+     * Gets the value of this gold
+     * @return Value of the gold.
+     */
+    public int getValue(){
+    	return val;
     }
 }

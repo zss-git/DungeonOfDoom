@@ -10,6 +10,7 @@ import java.util.Random;
 
 import dodServer.game.items.Armour;
 import dodServer.game.items.GameItem;
+import dodServer.game.items.Gold;
 import dodServer.game.items.Sword;
 
 /**
@@ -61,9 +62,13 @@ public class GameLogic {
      */
     public int addPlayer(PlayerListener player) {
 	final int playerID = this.players.size();
+	
+	Location startLocation = generateRandomStartLocation();
 
 	this.players.add(new Player("Player " + playerID,
-		generateRandomStartLocation(), player));
+			startLocation, player));
+	
+	notifyPlayersOfChange(startLocation);
 
 	if (this.players.size() == 1) {
 	    startNewGame();
@@ -219,7 +224,7 @@ public class GameLogic {
 	// Move the player
 	player.setLocation(location);
 	
-	notifyPlayersOfChange(location, curLocation, playerID); //Notify of changes on squares.
+	notifyPlayersOfMove(location, curLocation); //Notify of changes on squares.
 
 	advanceTurn(playerID);
 	return;
@@ -340,24 +345,15 @@ public class GameLogic {
     }
 
     /**
-     * Handles the client message ENDTURN
-     * 
-     * Just sets the AP to zero and advances as normal.
+     * Handles the message ENDTURN from the client. Throws command exception if it is not the players turn.
      */
-    public synchronized void clientEndTurn(int playerID) {
-	assertPlayerExists(playerID);
-	this.players.get(playerID).endTurn();
-
-	// Advance to the next alive player
-	do {
-	    this.currentPlayer++;
-
-	    if (this.currentPlayer >= this.players.size()) {
-		this.currentPlayer = 0;
-	    }
-	} while (this.players.get(this.currentPlayer).isDead());
-
-	startTurn();
+    public synchronized void clientEndTurn(int playerID) throws CommandException{
+    	//Players can only do this if it is their turn.
+    	if(currentPlayer != playerID){
+    		throw new CommandException("it is not your turn.");
+    	}
+    	
+    	endTurn(playerID);
     }
 
     /**
@@ -421,6 +417,33 @@ public class GameLogic {
 		return location;
 	    }
 	}
+    }
+    
+    /**
+     * Kills the specified player, causing them to drop all of their gold.
+     */
+    private void killPlayer(Player playerToKill){
+    	
+    	Tile playersTile = map.getMapCell(playerToKill.getLocation());
+    	
+    	//If this is an exit, gold will be lost.
+    	if(playersTile.isExit() == false){
+    		
+    		GameItem tileItem = playersTile.getItem();
+    		int valOfTile = 0;
+    		
+    		if(tileItem.toChar() == 'G'){
+    			//Gold on this tile.
+    			Gold goldItem = (Gold) tileItem;
+    			valOfTile = goldItem.getValue();
+    		}
+    		
+    		if(valOfTile < playerToKill.getGold()){
+    			Gold newGold = new Gold();
+    		}
+    		
+    	}
+    	
     }
 
     /**
@@ -509,45 +532,64 @@ public class GameLogic {
      * @param secondLocation Another location at which a change may have occurred
      * @param playerID The ID of the current player.
      */
-    private void notifyPlayersOfChange(Location changedLocation, int playerID){
-    	notifyPlayersOfChange(changedLocation, changedLocation, playerID);
+    private void notifyPlayersOfChange(Location changedLocation){
+    	notifyPlayersOfMove(changedLocation, changedLocation); //Save some time.
     }
     /**
-     * Notify all players of changes to multiple tiles - Zachary Shannon
+     * Notify all players of changes to multiple tiles where a player has moved - Zachary Shannon
      * 
      * @param changedLocation The location at which the change has occurred.
      * @param secondLocation Another location at which a change may have occurred
      * @param playerID The ID of the current player.
      */
-    private void notifyPlayersOfChange(Location firstLocation, Location secondLocation, int playerID){
+    private void notifyPlayersOfMove(Location movedTo, Location movedFrom){
     	//Iterate through all the players
     	for(Player p: players){
     		Location playerLocation = p.getLocation();
     		
+    		//If it is this player who just moved, don't update their look.
+    		if(movedTo.getRow() == playerLocation.getRow() && movedTo.getCol() == playerLocation.getCol()){
+    			continue; //Skip this player.
+    		}
+    		
     		//Calculate offsets.
-    		int firstRowOffset = playerLocation.getRow() - firstLocation.getRow();
-    		int firstColOffset = playerLocation.getCol() - firstLocation.getCol();
+    		int toRowOffset = playerLocation.getRow() - movedTo.getRow();
+    		int toColOffset = playerLocation.getCol() - movedTo.getCol();
     		
-    		int secondRowOffset = playerLocation.getRow() - secondLocation.getRow();
-    		int secondColOffset = playerLocation.getCol() - secondLocation.getCol();
+    		int fromRowOffset = playerLocation.getRow() - movedFrom.getRow();
+    		int fromColOffset = playerLocation.getCol() - movedFrom.getCol();
     		
-    		//Correct column offsets.
-    		if(firstColOffset > 0){
-    			firstColOffset++;
+    		//Correct column offsets for the manhattan distance calculation.
+    		if(toColOffset > 0 && toRowOffset == 0){
+    			toColOffset++;
     		}
-    		else{
-    			firstColOffset--;
+    		else if(toRowOffset == 0){
+    			toColOffset--;
     		}
     		
-    		if(secondColOffset > 0){
-    			secondColOffset++;
+    		if(fromColOffset > 0 && fromRowOffset == 0){
+    			fromColOffset++;
     		}
-    		else{
-    			secondColOffset--;
+    		else if(fromRowOffset == 0){
+    			fromColOffset--;
+    		}
+    		
+    		if(toRowOffset > 0 && toColOffset == 0){
+    			toRowOffset++;
+    		}
+    		else if(toColOffset == 0){
+    			toRowOffset--;
+    		}
+    		
+    		if(fromRowOffset > 0 && fromColOffset == 0){
+    			fromRowOffset++;
+    		}
+    		else if(fromColOffset == 0){
+    			fromRowOffset--;
     		}
     				
     		//Can the player see the tiles?
-    		if(p.canSeeTile(firstRowOffset, firstColOffset) || p.canSeeTile(secondRowOffset, secondColOffset)){
+    		if(p.canSeeTile(toRowOffset, toColOffset) || p.canSeeTile(fromRowOffset, fromColOffset)){
     			p.lookChange(); //Notify them.
     		}
     	}
@@ -595,9 +637,28 @@ public class GameLogic {
 		} else {
 		    if ((player.remainingAp() == 0) || player.isDead()) {
 		    	// Force the end of turn
-		    	clientEndTurn(playerID);
+		    	endTurn(playerID);
 		    }
 		}
+    }
+    /**
+     * Ends the clients turn. The old client end turn method.
+     * @param playerID ID of player to end turn of.
+     */
+    private synchronized void endTurn(int playerID){
+    	assertPlayerExists(playerID);
+		this.players.get(playerID).endTurn();
+	
+		// Advance to the next alive player
+		do {
+		    this.currentPlayer++;
+	
+		    if (this.currentPlayer >= this.players.size()) {
+			this.currentPlayer = 0;
+		    }
+		} while (this.players.get(this.currentPlayer).isDead());
+	
+		startTurn();
     }
 
 }
