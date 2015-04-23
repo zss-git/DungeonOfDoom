@@ -276,7 +276,7 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
 
     /**
      * Obtains a compass direction from a string. Used to ensure the correct
-     * exception type is thrown, and for consistancy between MOVE and ATTACK.
+     * exception type is thrown, and for consistency between MOVE and ATTACK.
      * 
      * @param string
      *            the direction string

@@ -163,7 +163,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	public void handleMessage(String message) {
 		
 		if(message == null){
-			
+			return;
 		}
 		
 		if(lp.isPartOfLook(message)){

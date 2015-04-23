@@ -304,6 +304,13 @@ public class Player implements GameItemConsumer {
     public void lookChange(){
     	this.listener.lookChange();
     }
+    
+    /**
+     * Tells the player that their attack failed.
+     */
+    public void attackFail(){
+    	
+    }
 
     /**
      * Reset the player's AP to the initial value.

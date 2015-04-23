@@ -60,7 +60,7 @@ public class GameLogic {
      * 
      * @return the id of the player
      */
-    public int addPlayer(PlayerListener player) {
+    public synchronized int addPlayer(PlayerListener player) {
 	final int playerID = this.players.size();
 	
 	Location startLocation = generateRandomStartLocation();
@@ -267,7 +267,11 @@ public class GameLogic {
 			int dmg = 1; //By default the player does 1 damage.
 			Random rand = new Random();
 			
+			boolean attackHit = false;
+			
 			if(rand.nextInt(13) > 3){
+				
+				attackHit = true;
 				
 				//If the player has a sword, they should do more damage.
 				if(thisPlayer.hasItem(new Sword())){
@@ -283,17 +287,24 @@ public class GameLogic {
 				
 				if(playerToAttack.getHp() < 1){
 					killPlayer(playerToAttack);
-					//playerToAttack.lose();
 				}
 			}
 			else{
-				throw new CommandException("You missed!!!");
+				attackHit = false;
 			}
+			
+			thisPlayer.decrementAp(); //Cost the player ap.
+			advanceTurn(playerID); //advance players turn.
+			
+			if(attackHit == false){
+				throw new CommandException("Attack missed.");
+			}
+			
 		}
 		else{
 			throw new CommandException("There is no one to attack here.");
 		}
-	    }
+	}
 
     /**
      * Handles the client message PICKUP. Generally it decrements AP, and gives
@@ -422,9 +433,11 @@ public class GameLogic {
     /**
      * Kills the specified player, causing them to drop all of their gold.
      */
-    private void killPlayer(Player playerToKill){
+    private synchronized void killPlayer(Player playerToKill){
     	
     	Tile playersTile = map.getMapCell(playerToKill.getLocation());
+    	
+    	Location locationOfDeath = playerToKill.getLocation();
     	
     	//If this is an exit, gold will be lost.
     	if(playersTile.isExit() == false){
@@ -456,12 +469,13 @@ public class GameLogic {
     		//Double check their hp is set to 0.
     		playerToKill.kill();
     		
+    		
     		playerToKill.setLocation(new Location(-10, -10)); //Move the player to a special dead area
     		
     		playerToKill.lookChange(); //Tell the current player to update their look.
     		
     		//Tell everyone else to update their look.
-    		notifyPlayersOfChange(playerToKill.getLocation());
+    		notifyPlayersOfChange(locationOfDeath);
     		
     		//Tell the player they have lost.
     		playerToKill.lose();
@@ -562,7 +576,7 @@ public class GameLogic {
      * @param secondLocation Another location at which a change may have occurred
      * @param playerID The ID of the current player.
      */
-    private void notifyPlayersOfChange(Location changedLocation){
+    private synchronized void notifyPlayersOfChange(Location changedLocation){
     	notifyPlayersOfMove(changedLocation, changedLocation); //Save some time.
     }
     /**
@@ -572,7 +586,7 @@ public class GameLogic {
      * @param secondLocation Another location at which a change may have occurred
      * @param playerID The ID of the current player.
      */
-    private void notifyPlayersOfMove(Location movedTo, Location movedFrom){
+    private synchronized void notifyPlayersOfMove(Location movedTo, Location movedFrom){
     	//Iterate through all the players
     	for(Player p: players){
     		Location playerLocation = p.getLocation();
