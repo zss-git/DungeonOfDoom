@@ -282,8 +282,8 @@ public class GameLogic {
 				playerToAttack.incrementHealth(-dmg);
 				
 				if(playerToAttack.getHp() < 1){
-					playerToAttack.kill();
-					playerToAttack.lose();
+					killPlayer(playerToAttack);
+					//playerToAttack.lose();
 				}
 			}
 			else{
@@ -429,18 +429,34 @@ public class GameLogic {
     	//If this is an exit, gold will be lost.
     	if(playersTile.isExit() == false){
     		
+    		Gold newGold = new Gold();
+    		
     		GameItem tileItem = playersTile.getItem();
-    		int valOfTile = 0;
+    		int tileVal = 0;
     		
-    		if(tileItem.toChar() == 'G'){
-    			//Gold on this tile.
-    			Gold goldItem = (Gold) tileItem;
-    			valOfTile = goldItem.getValue();
+    		if(tileItem != null){
+    			
+	    		if(tileItem.toChar() == 'G'){
+	    			//Gold on this tile.
+	    			Gold goldItem = (Gold) tileItem;
+	    			tileVal = goldItem.getValue(); //Add the value of this tile to the users worth.
+	    		}
+	    		
     		}
     		
-    		if(valOfTile < playerToKill.getGold()){
-    			Gold newGold = new Gold();
-    		}
+    		//Set the value equal to what the player has.
+    		newGold.setValue(playerToKill.getGold() + tileVal);
+
+    		
+    		//Replace the tile.
+    		playersTile.setItem(newGold);
+    		
+    		//Double check their hp is set to 0.
+    		playerToKill.kill();
+    		
+    		//Remove the player
+    		playerToKill.setLocation(new Location(-10, -10)); //Move the player off of the map.
+    		playerToKill.lookChange(); //Tell them to update their look.
     		
     	}
     	

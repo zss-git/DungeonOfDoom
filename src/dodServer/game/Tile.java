@@ -107,6 +107,14 @@ public class Tile {
     public GameItem getItem() {
 	return this.item;
     }
+    
+    /**
+     * Set the item on the tile.
+     * @param newItem Item to set on this tile.
+     */
+    public void setItem(GameItem newItem){
+    	this.item = newItem;
+    }
 
     /**
      * Removes the item from the tile, e.g. after a successful pickup.

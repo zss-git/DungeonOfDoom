@@ -135,6 +135,11 @@ public class Server implements Runnable {
 			public void run(){
 				while(true){
 					
+					try {
+						sleep(150); //Sleep for a bit.
+					} catch (InterruptedException e) {
+					}
+					
 					int connectedUsers = 0;
 					
 					//Counts the number of connected users..
