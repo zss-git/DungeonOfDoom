@@ -84,7 +84,7 @@ public class GameLogic {
      * Made some changes to support networking - Zachary Shannon
      */
     public synchronized void removePlayer(int playerID) {
-    	this.players.get(playerID).kill();
+    	killPlayer(this.players.get(playerID));
     	
 		if (this.currentPlayer == playerID) {
 		    // Advance turn to handle death on player's turn
@@ -448,15 +448,23 @@ public class GameLogic {
     		newGold.setValue(playerToKill.getGold() + tileVal);
 
     		
-    		//Replace the tile.
-    		playersTile.setItem(newGold);
+    		//Replace the tile - if the player was worth something
+    		if(newGold.getValue() > 0){
+    			playersTile.setItem(newGold);
+    		}
     		
     		//Double check their hp is set to 0.
     		playerToKill.kill();
     		
-    		//Remove the player
-    		playerToKill.setLocation(new Location(-10, -10)); //Move the player off of the map.
-    		playerToKill.lookChange(); //Tell them to update their look.
+    		playerToKill.setLocation(new Location(-10, -10)); //Move the player to a special dead area
+    		
+    		playerToKill.lookChange(); //Tell the current player to update their look.
+    		
+    		//Tell everyone else to update their look.
+    		notifyPlayersOfChange(playerToKill.getLocation());
+    		
+    		//Tell the player they have lost.
+    		playerToKill.lose();
     		
     	}
     	
@@ -482,6 +490,12 @@ public class GameLogic {
 	return false;
     }
 
+    /**
+     * Returns true if there are other people on the tile. I (Zachary Shannon) made some changes so that it checks for dead people.
+     * @param location Location of the tile to check.
+     * @param currentPlayerID ID of the current player/
+     * @return true if there is a player here, false otherwise.
+     */
     private boolean otherPlayerOnTile(Location location, int currentPlayerID) {
 	for (int otherPlayerID = 0; otherPlayerID < this.players.size(); otherPlayerID++) {
 	    if ((otherPlayerID != currentPlayerID)
@@ -629,9 +643,24 @@ public class GameLogic {
     private synchronized void advanceTurn(int playerID) {
 	final Player player = this.players.get(playerID);
 	
+		//Check in bounds - dead players will be out of bounds.
+	
+		boolean isPlayerOnExit;
+		
+		if(player.getLocation().getRow() < 0 
+				|| player.getLocation().getCol() < 0 
+					|| player.getLocation().getRow() >= map.getMapHeight() 
+						|| player.getLocation().getCol() >= map.getMapWidth()){
+			
+			isPlayerOnExit = false;
+		}
+		else{
+			isPlayerOnExit = this.map.getMapCell(player.getLocation()).isExit();
+		}
+		
 		// Check if the player has won
 		if ((player.getGold() >= this.map.getGoal())
-			&& (this.map.getMapCell(player.getLocation()).isExit())) {
+			&& isPlayerOnExit) {
 	
 		    // Player should not be able to move if they have won.
 		    assert (!this.playerWon);

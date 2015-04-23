@@ -267,7 +267,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		}
 		else if(message.startsWith("LOSE")){
 			//The player lost the game.
-			infoPanel.println("You lost... disconnecting.");
+			infoPanel.println("You lost..");
 			
 			if(infoPanel.getHp() <= 0){
 				JOptionPane.showMessageDialog(this, "You died.");
@@ -275,8 +275,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			else{
 				JOptionPane.showMessageDialog(this, "You lost.");
 			}
-			
-			nc.stopClient(); //Stop the client.
 		}
 		else if(message.startsWith("CHANGE")){
 			//Look again.

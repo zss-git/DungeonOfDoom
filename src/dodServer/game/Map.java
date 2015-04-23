@@ -83,7 +83,7 @@ public class Map {
      * @return the contents of the cell
      */
     public Tile getMapCell(Location location) {
-	return this.map[location.getRow()][location.getCol()];
+    	return this.map[location.getRow()][location.getCol()];
     }
 
     /**

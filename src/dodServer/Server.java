@@ -23,7 +23,6 @@ public class Server implements Runnable {
 	private GameLogic game;
 	private ServerSocket connectionListener;
 	private boolean acceptingConnections;
-	private boolean gameStarted;
 	private List<NetworkedUser> usrList;
 	
 	/**
@@ -47,7 +46,6 @@ public class Server implements Runnable {
 		
 		//Stuff that'll be needed later
 		acceptingConnections = true;
-		gameStarted = false;
 		usrList =  Collections.synchronizedList(new ArrayList<NetworkedUser>());
 		
 		//Create new gamelogic and load in the map.
@@ -98,9 +96,10 @@ public class Server implements Runnable {
 	 */
 	@Override
 	public void run() {
-		try {		
-			//Accept connections.
-			while(acceptingConnections){
+		while(acceptingConnections){
+			try {		
+				//Accept connections.
+				
 				Socket usrSocket = connectionListener.accept();
 				
 				NetworkedUser usr = new NetworkedUser(game, usrSocket);
@@ -109,15 +108,13 @@ public class Server implements Runnable {
 				usrList.add(usr); //Make sure we keep track of all the users.
 				
 				//Start the user thread.
-				(new Thread(usr)).start();		
-				
-				gameStarted = true;
-			}			
-		} //Error handling.
-		catch (IOException e) {
-			System.err.println("Error dealing with a client.");
-			e.printStackTrace();
-			System.exit(1);
+				(new Thread(usr)).start();
+							
+			} //Error handling.
+			catch (IOException e) {
+				System.err.println("Error dealing with a client.");
+				e.printStackTrace();
+			}
 		}
 	}
 	/**

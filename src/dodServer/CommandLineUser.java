@@ -153,12 +153,12 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
     }
 
     protected void removePlayer() {
-	if (!this.playerAdded) {
-	    throw new RuntimeException("Player not added");
-	}
-	this.playerAdded = false;
-
-	this.game.removePlayer(this.playerID);
+		if (!this.playerAdded) {
+		    throw new RuntimeException("Player not added");
+		}
+		this.playerAdded = false;
+		
+		this.game.removePlayer(this.playerID);
     }
 
     /*
