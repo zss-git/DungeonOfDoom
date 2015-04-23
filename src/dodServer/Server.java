@@ -27,6 +27,17 @@ public class Server implements Runnable {
 	private List<NetworkedUser> usrList;
 	
 	/**
+	 * Starts a server instance.
+	 * @param args Command line arguments.
+	 */
+	public static void main(String[] args) {
+		Scanner setupScn = new Scanner(System.in);
+		Server srv = new Server(getMapName(setupScn), 49155);
+		
+		(new Thread(srv)).start();
+	}
+	
+	/**
 	 * Creates an instance of a server object, which can be run to accept connections.
 	 * @param mapName Name of map to load into the game.
 	 * @param socket Socket to listen on later.
@@ -40,16 +51,21 @@ public class Server implements Runnable {
 		usrList =  Collections.synchronizedList(new ArrayList<NetworkedUser>());
 		
 		//Create new gamelogic and load in the map.
+		
+		//Attempt to load the map.
+		
 		try{
 			game = new GameLogic(mapName);
 			System.out.println("Using map " + mapName);
 		}
 		catch (ParseException e){
-			System.err.println("Syntax error on line " + e.getErrorOffset()
-				    + ":" + System.getProperty("line.separator") + e.getMessage());
+			System.err.println("Syntax error on line " + e.getErrorOffset() + ":" + System.getProperty("line.separator") + e.getMessage());
 			System.exit(1);
 		} catch (FileNotFoundException e) {
 			System.err.println("Map file not found.");
+			System.exit(1);
+		} catch (IllegalStateException e){
+			System.err.println("Entered map is not valid: " + e.getMessage());
 			System.exit(1);
 		}
 		
@@ -61,7 +77,6 @@ public class Server implements Runnable {
 			System.exit(1);
 		}
 		
-		startPlayerWatcher();
 		startInputThread();
 		
 		System.out.println("Server started.");
@@ -105,18 +120,6 @@ public class Server implements Runnable {
 			System.exit(1);
 		}
 	}
-	
-	
-	/**
-	 * Starts a server instance.
-	 * @param args Command line arguments.
-	 */
-	public static void main(String[] args) {
-		Scanner setupScn = new Scanner(System.in);
-		Server srv = new Server(getMapName(setupScn), 49155);
-		
-		(new Thread(srv)).start();
-	}
 	/**
 	 * Gets a name of a map from the command line.
 	 * @param mapScn Scanner to use to get stuff from STDIN.
@@ -126,40 +129,6 @@ public class Server implements Runnable {
 		System.out.println("Enter the name of the map you would like to load:");
 		String mapName = mapScn.nextLine();
 		return mapName;
-	}
-	/**
-	 * Starts a thread that watches to see if there are any players in the game. If there are no players left in the game (and the game is started), it ends the game.
-	 */
-	private void startPlayerWatcher(){
-		(new Thread(){
-			public void run(){
-				while(true){
-					
-					try {
-						sleep(150); //Sleep for a bit.
-					} catch (InterruptedException e) {
-					}
-					
-					int connectedUsers = 0;
-					
-					//Counts the number of connected users..
-					synchronized(usrList){
-						for(NetworkedUser curUsr : usrList){
-							if(curUsr.isConnectionOpen() == true){
-								connectedUsers++;
-							}
-						}
-					}
-					
-					//If there are none left, ensures the game ends.
-					if(gameStarted == true){
-						if(connectedUsers < 1){
-							stopServer("No players left in the game.");	
-						}
-					}
-				}
-			}
-		}).start();
 	}
 	/**
 	 * Starts a thread that watches for input from STDIN. Acts on that input.
