@@ -61,32 +61,38 @@ public class GameLogic {
      * @return the id of the player
      */
     public synchronized int addPlayer(PlayerListener player) {
-	final int playerID = this.players.size();
+		final int playerID = this.players.size();
+		
+		Location startLocation = generateRandomStartLocation();
 	
-	Location startLocation = generateRandomStartLocation();
-
-	this.players.add(new Player("Player " + playerID,
-			startLocation, player));
+		this.players.add(new Player("Player " + playerID,
+				startLocation, player));
+		
+		notifyPlayersOfChange(startLocation);
 	
-	notifyPlayersOfChange(startLocation);
-
-	if (this.players.size() == 1) {
-	    startNewGame();
-	}
-
-	return playerID;
+		//Changed this code so it accounts for the idea that the game might have no players in it but has started.
+		if (this.players.size() == 1 && this.currentPlayer == -1) {
+		    startNewGame();
+		}
+		else if (this.players.size() == 1) {
+			this.currentPlayer = playerID;
+			startTurn();
+		}
+	
+		return playerID;
     }
 
     /**
-     * Removes a player from the game. The player is killed within the game, but
-     * the reference is held. 
+     * Removes a player from the game, physically from the map.
      * 
-     * Made some changes to support networking - Zachary Shannon
+     * Rewrote to fix a bunch of stuff - Zachary Shannon
      */
     public synchronized void removePlayer(int playerID) {
     	killPlayer(this.players.get(playerID));
     	
-		if (this.currentPlayer == playerID) {
+    	players.remove(this.players.get(playerID));
+    	
+		if (this.currentPlayer == playerID && this.players.isEmpty() == false) {
 		    // Advance turn to handle death on player's turn
 		    advanceTurn(playerID);
 		}

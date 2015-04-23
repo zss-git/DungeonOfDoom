@@ -59,7 +59,7 @@ public class NetworkedUser extends CommandLineUser{
 	public synchronized void end(){
 		connectionOpen = false;
 		
-		//Kill the associated player.
+		//Remove the associated player.
 		removePlayer();
 	}
 	
