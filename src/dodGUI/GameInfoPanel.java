@@ -1,6 +1,16 @@
 /**
  * This panel provides information about the currently running game, and provides an interface to change the displayed characters.
  * Also keeps track of ap, health and gold.
+ * 
+ * Note that all the default values in this class are hard coded. This is not ideal. 
+ * The server tells us how much gold is needed to win, so it should (ideally) also tell us the values of these defaults, so we don't have to 'guess'
+ * like we do here. I did not, however, want to make any extensions to the specification for this project.
+ * 
+ * Should later additions have been made, it would be trivial to capture the defaultValues and feed them to this class. In the meanwhile,
+ * the default values are stored here for the sake of readability.
+ * 
+ * @version 18 Apr 2015 - Edit 23 Apr 2015
+ * @author Zachary Shannon
  */
 
 package dodGUI;
@@ -17,6 +27,7 @@ public class GameInfoPanel extends JPanel {
 	private JLabel goldWinLabel;
 	private JLabel goldLabel;
 	private JLabel healthLabel;
+	private JLabel apLabel;
 	private JLabel infoLabel;
 	
 	private int goldWin;
@@ -29,6 +40,10 @@ public class GameInfoPanel extends JPanel {
 	private final int defaultHp = 3;
 	private int hp;
 	
+	//AP
+	private final int defaultAp = 6;
+	private int ap;
+	
 	/**
 	 * Creates a new instance.
 	 */
@@ -39,6 +54,7 @@ public class GameInfoPanel extends JPanel {
 		//Make all tracked values their defaults.
 		gold = defaultGold;
 		hp = defaultHp;
+		ap = defaultAp;
 		
 		goldWin = 0; //Placeholder.
 		
@@ -46,6 +62,7 @@ public class GameInfoPanel extends JPanel {
 		goldWinLabel = new JLabel("Need: ?g");
 		goldLabel = new JLabel("Have: " + gold + "g");
 		healthLabel = new JLabel(hp + "hp");
+		apLabel = new JLabel(ap + "ap");
 		infoLabel = new JLabel("info");
 		
 		//Add everything and the spacers.
@@ -55,6 +72,8 @@ public class GameInfoPanel extends JPanel {
 		this.add(goldLabel);
 		this.add(Box.createHorizontalStrut(1));
 		this.add(healthLabel);
+		this.add(Box.createHorizontalStrut(1));
+		this.add(apLabel);
 		this.add(Box.createHorizontalStrut(30));
 		this.add(infoLabel);
 		this.add(Box.createHorizontalStrut(1));
@@ -96,7 +115,7 @@ public class GameInfoPanel extends JPanel {
 	
 	/**
 	 * Modifies the amount of HP possessed.
-	 * @param hpMod Value to add - can by negative.
+	 * @param hpMod Value to add - can be negative.
 	 */
 	public void modifyHp(int hpMod){
 		hp = hp + hpMod;
@@ -109,6 +128,31 @@ public class GameInfoPanel extends JPanel {
 	 */
 	public int getHp(){
 		return hp;
+	}
+	
+	/**
+	 * Modifies the amount of AP possessed.
+	 * @param apMod Value to add - can be negative.
+	 */
+	public void modifyAp(int apMod){
+		ap = ap + apMod;
+		apLabel.setText(ap + "ap");
+	}
+	
+	/**
+	 * Gets ap.
+	 * @return How much AP the player possesses.
+	 */
+	public int getAp(){
+		return ap;
+	}
+	
+	/**
+	 * Resets ap to the default.
+	 */
+	public void resetAp(){
+		ap = defaultAp;
+		apLabel.setText(ap + "ap");
 	}
 	
 	/**

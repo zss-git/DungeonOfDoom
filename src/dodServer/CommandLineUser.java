@@ -146,6 +146,8 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
 
 	// The first message must be GOLD
 	outputMessage("GOLD " + this.game.getGoal(), true);
+	
+	
 
 	// Ensures that the instance will listen to the player in the
 	// game for messages from the game

@@ -1,5 +1,5 @@
 /**
- * Server class for a networked version of the game. Pretty much an adaptation of program, that sets up sockets and starts NetworkedUser threads.
+ * Server class for a networked version of the Dungeon of Doom game.
  * 
  * @author Zachary Shannon
  */

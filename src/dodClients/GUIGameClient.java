@@ -1,3 +1,10 @@
+/**
+ * A comprehensive, functional graphical client for the Dungeon Of Doom game.
+ * 
+ * @version 21 Apr 2015
+ * @author Zachary Shannon
+ */
+
 package dodClients;
 
 import java.awt.BorderLayout;
@@ -234,6 +241,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		}
 		else if(message.startsWith("STARTTURN")){
 			//Players turn begins.
+			infoPanel.resetAp();
 			infoPanel.println("It is now your turn.");
 		}
 		else if(message.startsWith("ENDTURN")){
@@ -304,6 +312,12 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				
 				//Schedule a timeout.
 				interrupter.interruptIn(500);
+				
+				if(usesAp(lastMessage)){
+					//Update ui.
+					infoPanel.modifyAp(-1);
+				}
+				
 				return lastMessage;		
 			}
 			
@@ -321,7 +335,14 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			}
 			
 			//Wait for a command.
-			return messageStack.take();
+			String newCommand = messageStack.take();
+			
+			if(usesAp(newCommand)){
+				//Update ui.
+				infoPanel.modifyAp(-1);
+			}
+			
+			return newCommand;
 			
 			
 		} catch (InterruptedException e) {
@@ -569,6 +590,19 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 */
 	private boolean shouldWaitForResponse(String command){
 		if(command.startsWith("ATTACK") || command.startsWith("MOVE") || command.startsWith("PICKUP") || command.startsWith("HELLO")){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	/**
+	 * Given a server command, returns whether or not that command uses ap.
+	 * @param command Command to check.
+	 * @return True if uses ap, false otherwise.
+	 */
+	private boolean usesAp(String command){
+		if(command.startsWith("ATTACK") || command.startsWith("MOVE") || command.startsWith("PICKUP")){
 			return true;
 		}
 		else{
