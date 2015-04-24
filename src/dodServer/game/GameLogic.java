@@ -195,7 +195,23 @@ public class GameLogic {
     	//Iterate through, adding elements to the map.
     	for(int rowix = 0; rowix < map.getMapHeight(); rowix++){
     		for(int colix = 0; colix < map.getMapWidth(); colix++){
-    			charMap[rowix][colix] = map.getMapCell(new Location(colix, rowix)).toChar();
+    			
+    			Location thisLocation = new Location(colix, rowix);
+    			
+    			//Is there a player on this square?
+    			
+    			boolean isPlayer = false;
+    			
+    			for(Player p : players){
+    				if(p.getLocation().getCol() == colix && p.getLocation().getRow() == rowix){
+    					isPlayer = true;
+    					charMap[rowix][colix] = 'P';
+    				}
+    			}
+    			
+    			if(isPlayer == false){
+    				charMap[rowix][colix] = map.getMapCell(thisLocation).toChar();
+    			}
     		}
     	}
     	

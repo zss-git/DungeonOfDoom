@@ -390,7 +390,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	}
 	/**
 	 * Gets a port, double checks it is valid.
-	 * @return
+	 * @return port specified by user
 	 */
 	private int getPort(){
 		int port = -1;
