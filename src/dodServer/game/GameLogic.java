@@ -12,6 +12,7 @@ import dodServer.game.items.Armour;
 import dodServer.game.items.GameItem;
 import dodServer.game.items.Gold;
 import dodServer.game.items.Sword;
+import dodUtil.CommandException;
 
 /**
  * This class controls the game logic and interaction between players. Caution:

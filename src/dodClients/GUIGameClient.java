@@ -44,8 +44,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	
 	private NetworkClient nc;
 	
-	
-	
 	private ActionListener commandAl = new ActionListener(){
 		
 		public void actionPerformed(ActionEvent event) {

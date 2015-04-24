@@ -1,4 +1,4 @@
-package dodServer.game;
+package dodUtil;
 
 /**
  * An exception to handle invalid commands

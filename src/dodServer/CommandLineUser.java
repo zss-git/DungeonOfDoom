@@ -3,10 +3,10 @@ package dodServer;
 import java.util.ArrayList;
 import java.util.List;
 
-import dodServer.game.CommandException;
 import dodServer.game.CompassDirection;
 import dodServer.game.GameLogic;
 import dodServer.game.PlayerListener;
+import dodUtil.CommandException;
 
 /**
  * An abstract class to handle the parsing and handling of textual commands,

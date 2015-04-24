@@ -5,6 +5,7 @@ import java.util.List;
 
 import dodServer.game.items.GameItem;
 import dodServer.game.items.GameItemConsumer;
+import dodUtil.CommandException;
 
 /**
  * Class representing a player
