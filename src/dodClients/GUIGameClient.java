@@ -26,6 +26,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import dodGUI.GameInfoPanel;
@@ -124,7 +125,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		itemPanel = new ItemInfoPanel();
 		
 		//Holds all the icons.
-		vp = new VisionPanel(5);
+		vp = new VisionPanel(5, 5, true);
 		vp.writeArr();
 		
 		//Setup this underlying main pane.
@@ -175,7 +176,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			//Check if the parser is done.
 			if(lp.hasLook()){
 				char[][] look = lp.getLook();
-				vp.changeSize(look[0].length);
+				vp.changeSize(look[0].length, look.length);
 				vp.writeArr(look);
 				
 				//Refresh UI elements and re-validate.
@@ -485,7 +486,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.LINE_AXIS));
 		topPanel.add(Box.createHorizontalGlue());
-		topPanel.add(vp);
+		topPanel.add(new JScrollPane(vp)); //Put the visionpanel in a scrollpane.
 		topPanel.add(Box.createHorizontalGlue());
 		topPanel.add(nav);
 		topPanel.add(Box.createHorizontalGlue());

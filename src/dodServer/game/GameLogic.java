@@ -13,6 +13,7 @@ import dodServer.game.items.GameItem;
 import dodServer.game.items.Gold;
 import dodServer.game.items.Sword;
 import dodUtil.CommandException;
+import dodUtil.UpdateWatcher;
 
 /**
  * This class controls the game logic and interaction between players. Caution:
@@ -30,6 +31,8 @@ public class GameLogic {
 
     // The current player's turn, -1 indicates game not started
     private int currentPlayer = -1;
+    
+    private List<UpdateWatcher> updateWatchers = new ArrayList<UpdateWatcher>(); //Keeps track of things interested in map changes.
 
     /**
      * Constructor that specifies the map which the game should be played on.
@@ -70,6 +73,7 @@ public class GameLogic {
 				startLocation, player));
 		
 		notifyPlayersOfChange(startLocation);
+		mapUpdated();
 	
 		//Changed this code so it accounts for the idea that the game might have no players in it but has started.
 		if (this.players.size() == 1 && this.currentPlayer == -1) {
@@ -186,9 +190,9 @@ public class GameLogic {
     }
     
     /**
-     * @return a 2x2 array containing a char representation of the map for the server interface.
+     * @return a 2x2 array containing a char representation of the map.
      */
-    public char[][] serverLook(){
+    public char[][] getMap(){
     	
     	char[][] charMap = new char[map.getMapHeight()][map.getMapWidth()];
     	
@@ -267,6 +271,7 @@ public class GameLogic {
 	player.setLocation(location);
 	
 	notifyPlayersOfMove(location, curLocation); //Notify of changes on squares.
+	mapUpdated();
 
 	advanceTurn(playerID);
 	return;
@@ -444,6 +449,25 @@ public class GameLogic {
     public int getGoal() {
 	return this.map.getGoal();
     }
+    
+    /**
+     * Adds an update watcher to the map.
+     * @param New watcher to add.
+     */
+    public void addUpdateWatcher(UpdateWatcher newWatcher){
+    	updateWatchers.add(newWatcher);
+    }
+    
+    /**
+     * Tells everyone interested in map updates that the map has been updated
+     */
+    public void mapUpdated(){
+    	
+    	for(UpdateWatcher w : updateWatchers){
+    		w.update();
+    	}
+    	
+    }
 
     /**
      * Generates a randomised start location
@@ -518,6 +542,8 @@ public class GameLogic {
     		
     		//Tell everyone else to update their look.
     		notifyPlayersOfChange(locationOfDeath);
+    		
+    		mapUpdated();
     		
     		//Tell the player they have lost.
     		playerToKill.lose();

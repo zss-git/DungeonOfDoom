@@ -17,6 +17,7 @@ import java.text.ParseException;
 
 import dodServer.game.GameLogic;
 import dodUtil.CommandException;
+import dodUtil.UpdateWatcher;
 
 public class ServerLogic{
 	
@@ -107,6 +108,7 @@ public class ServerLogic{
 					catch (IOException e) {
 						System.err.println("Failed to open server on socket " + socket);
 						acceptingConnections = false;
+						System.exit(0);
 					}
 							
 					while(acceptingConnections){
@@ -184,7 +186,15 @@ public class ServerLogic{
      */
     public char[][] getMap(){
     	
-    	return game.serverLook();
+    	return game.getMap();
     			
+    }
+    
+    /**
+     * Add update watcher to the game
+     * @param Update watcher to add.
+     */
+    public void addUpdateWatcher(UpdateWatcher newWatcher){
+    	game.addUpdateWatcher(newWatcher);
     }
 }
