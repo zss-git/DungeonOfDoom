@@ -48,12 +48,11 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	private ActionListener commandAl = new ActionListener(){
 		
 		public void actionPerformed(ActionEvent event) {
-			
 			if(nc.stopped() == true){
 				infoPanel.println("No longer connected to server.");
 				return;
 			}
-			
+	
 			try{
 				messageStack.put("LOOK");
 				
@@ -97,7 +96,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 * This constructor initiates the GUI and then sets up a NetworkClient and a scanner.
 	 */
 	public GUIGameClient(){
-		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Exit on close.
 		
 		//Create new interrupter and associated runnable.
@@ -109,7 +107,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				commandWaitingForResponse = "";
 				messageStack.pop();
 			}
-			
 		});
 		
 		//Get IP address and port.
@@ -158,16 +155,13 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			messageStack.put("LOOK"); //Look (and so draw the map).
 		} catch (InterruptedException e) {
 		}
-
 	}
 	
-
 	/**
 	 * Implementation of message handling part of the NetworkMessageListener. Displays information given by the server in a meaningful way.
 	 */
 	@Override
 	public void handleMessage(String message) {
-		
 		if(message == null){
 			return;
 		}
@@ -290,8 +284,8 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			} catch (InterruptedException e) {
 			}
 		}
-
 	}
+	
 	/**
 	 * Implementation of message getting part of the NetworkMessageListener. Gives the server a command from the stack.
 	 */
@@ -316,13 +310,11 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 					//Update ui.
 					infoPanel.modifyAp(-1);
 				}
-				
 				return lastMessage;		
 			}
 			
 			//If we are waiting for a response, check to see if it has been handled. If it has, sort out the queue, then return nothing again.
 			if(waitingForResponse == true){
-				
 				if(commandWaitingForResponse == ""){
 					waitingForResponse = false;
 					messageStack.pop();
@@ -340,9 +332,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				//Update ui.
 				infoPanel.modifyAp(-1);
 			}
-			
 			return newCommand;
-			
 			
 		} catch (InterruptedException e) {
 			return "";
@@ -354,7 +344,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 * @return
 	 */
 	private String getIPAddress(){
-		
 		//Ensure IP address is valid.
 		String address = "";
 		
@@ -377,6 +366,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		}
 		return address;
 	}
+	
 	/**
 	 * Gets the name from the user.
 	 */
@@ -389,6 +379,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		
 		return name;
 	}
+	
 	/**
 	 * Gets a port, double checks it is valid.
 	 * @return port specified by user
@@ -499,7 +490,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 */
 	private JPanel createGameActionPanel(){
 		JPanel buttonPanel = new JPanel();
-		//buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
 		
 		//Create JButtons - in game actions.
 		JButton pickup = new JButton("Pickup");

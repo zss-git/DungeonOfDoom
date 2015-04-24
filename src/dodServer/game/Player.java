@@ -19,6 +19,9 @@ public class Player implements GameItemConsumer {
 
     // Does the player have a default name
     boolean defaultName = true;
+    
+    //Has the player won?
+    boolean playerHasWon = false;
 
     // The player may be "listened to" to interpret updates
     private final PlayerListener listener;
@@ -283,7 +286,14 @@ public class Player implements GameItemConsumer {
      * Handle the player winning
      */
     public void win() {
-	this.listener.win();
+		this.listener.win();
+		playerHasWon = true;
+    }
+    /**
+     * @return Whether or not the player has won
+     */
+    public boolean hasWon(){
+    	return playerHasWon;
     }
     /**
      * Handle the player losing

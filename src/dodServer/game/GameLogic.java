@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -747,19 +746,20 @@ public class GameLogic {
 		    // Player should not be able to move if they have won.
 		    assert (!this.playerWon);
 		    
+		    
+		    player.win();
 		    if(playerWon == false){
-			    System.out.println("A winner was found.");
-		
-			    // Everyone is informed of the win.
-			    Iterator<Player> playersIt = players.iterator();
-			    while(playersIt.hasNext()){
-				    Player p = (Player) playersIt.next();
-				    p.sendMessage("Someone has won the game!!");
+
+			    // Everyone else is informed of the win.
+			    for(Player p : players){
+			    	if(p.hasWon() == false){
+				    	p.sendMessage("Someone has won the game!!");
+				    	p.lose();
+			    	}
 			    }
 		    }
 		    
 		    this.playerWon = true;
-		    player.win();
 		    
 		} else {
 		    if ((player.remainingAp() == 0) || player.isDead()) {

@@ -33,24 +33,21 @@ public class GameInfoPanel extends JPanel {
 	private int goldWin;
 	
 	//Gold
-	private final int defaultGold = 0;
-	private int gold;
+	private final int 	defaultGold = 0;
+	private int 		gold;
 	
 	//HP.
-	private final int defaultHp = 3;
-	private int hp;
+	private final int 	defaultHp = 3;
+	private int 		hp;
 	
 	//AP
-	private final int defaultAp = 6;
-	private int ap;
+	private final int 	defaultAp = 6;
+	private int 		ap;
 	
 	/**
 	 * Creates a new instance.
 	 */
 	public GameInfoPanel(){
-		
-		//this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-		
 		//Make all tracked values their defaults.
 		gold = defaultGold;
 		hp = defaultHp;

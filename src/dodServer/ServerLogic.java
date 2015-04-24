@@ -17,23 +17,27 @@ import java.text.ParseException;
 
 import dodServer.game.GameLogic;
 import dodUtil.CommandException;
+import dodUtil.ErrorListener;
 import dodUtil.UpdateWatcher;
 
 public class ServerLogic{
 	
 	private GameLogic 		game;
 	private ServerSocket 	connectionListener;
+	private ErrorListener 	errorHandler;
 	private boolean 		acceptingConnections;
 	private int 			socket;
 	
 	/**
 	 * Creates an instance of a server object, which can be run to accept connections.
 	 * @param mapName Name of map to load into the game.
-	 * @param socket Socket to listen on later.
-	 * @param scn Scanner to use for stdin input.
+	 * @param setSocket Socket to listen on.
+	 * @param setErrorHandler Handler for server errors.
 	 */
-	public ServerLogic(String mapName, int setSocket) 
+	public ServerLogic(String mapName, int setSocket, ErrorListener setErrorHandler) 
 			throws CommandException{
+		
+		errorHandler = setErrorHandler;
 		
 		//Set the socket.
 		socket = setSocket;
@@ -61,9 +65,7 @@ public class ServerLogic{
 	 * Stops the server
 	 */
 	public synchronized void stopServer(){
-
-		acceptingConnections = false;
-		
+		acceptingConnections = false;	
 	}
 	
 	/**
@@ -71,7 +73,6 @@ public class ServerLogic{
 	 */
 	public synchronized void stopListening() 
 			throws CommandException{
-		
 		if(acceptingConnections == true){
 			acceptingConnections = false;
 			
@@ -80,12 +81,10 @@ public class ServerLogic{
 			} 
 			catch (IOException e) {
 			}
-			
 		}
 		else{
 			throw new CommandException("already stopped");
 		}
-		
 	}
 	
 	/**
@@ -93,22 +92,19 @@ public class ServerLogic{
 	 */
 	public synchronized void startListening()
 			throws CommandException{
-		
 		if(acceptingConnections == false){
 			acceptingConnections = true;
 			
 			//Start the listener thread.
 			(new Thread(){
-				
 				public void run(){
 			
 					try {
 					  connectionListener = new ServerSocket(socket);
 					} 
 					catch (IOException e) {
-						System.err.println("Failed to open server on socket " + socket);
+						errorHandler.errorOccured("Failed to start server on socket " + socket);
 						acceptingConnections = false;
-						System.exit(0);
 					}
 							
 					while(acceptingConnections){
@@ -125,7 +121,7 @@ public class ServerLogic{
 							//The server has stopped listening.
 						}
 						catch (IOException e) {
-							System.err.println("An error with a client occured.");
+							errorHandler.errorOccured("An error with a client occured.");
 						}
 					}
 				}
@@ -161,14 +157,12 @@ public class ServerLogic{
 	 */
 	public String getIp() 
 			throws CommandException{
-		
 		try {
 			return InetAddress.getLocalHost().getHostAddress(); //This is not 100% reliable.
 		} 
 		catch (UnknownHostException e) {
 			throw new CommandException("unknown host");
 		}
-		
 	}
 	
 	/**
@@ -176,18 +170,14 @@ public class ServerLogic{
 	 * @return True if server is listening, otherwise false.
 	 */
 	public synchronized boolean isListening(){
-		
 		return acceptingConnections;
-		
 	}
 	
     /**
      * @return a 2x2 array containing a char representation of the map for the server interface.
      */
     public char[][] getMap(){
-    	
-    	return game.getMap();
-    			
+    	return game.getMap();		
     }
     
     /**

@@ -10,8 +10,9 @@ package dodServer;
 import java.util.Scanner;
 
 import dodUtil.CommandException;
+import dodUtil.ErrorListener;
 
-public class CLUIServer {
+public class CLUIServer implements ErrorListener {
 	
 	private ServerLogic srv;
 	private Scanner 	scn;
@@ -21,9 +22,7 @@ public class CLUIServer {
 	 * @param args Command line arguments.
 	 */
 	public static void main(String[] args) {
-		
 		new CLUIServer(new Scanner(System.in));
-		
 	}
 	
 	/**
@@ -31,14 +30,13 @@ public class CLUIServer {
 	 * @param setScn Scanner to use to get data from.
 	 */
 	public CLUIServer(Scanner setScn){
-		
 		scn = setScn;
 		
 		while(true){
 			try {				
 				int port = getPortNumber(scn);
 	
-				srv = new ServerLogic(getMapName(scn), port);
+				srv = new ServerLogic(getMapName(scn), port, this);
 				break;
 			}
 			catch (CommandException e) {				
@@ -48,9 +46,7 @@ public class CLUIServer {
 		
 		//Start input thread.
 		(new Thread(){
-			
 			public void run(){
-				
 				while(true){
 					String input = scn.nextLine();
 					input = input.toLowerCase();
@@ -62,11 +58,9 @@ public class CLUIServer {
 					}
 				}
 			}
-			
 		}).start();
 		
 		println("Server started");
-	
 	}
 	
 	/**
@@ -75,11 +69,9 @@ public class CLUIServer {
 	 */
 	public void processCommand(String input)
 			throws CommandException{
-		
 		String[] command = input.split(" ");
 		
 		if(command[0].equals("help")){
-			
 			//A help message.
 			println("Available server commands: "
 					+ "\nhelp - displays this message. "
@@ -89,10 +81,8 @@ public class CLUIServer {
 					+ "\nstart - starts listening for new clients. "
 					+ "\nstop - stops listening for new clients. "
 					+ "\nquit - quits this application ");
-			
 		}
 		else if(command[0].equals("port")){
-			
 			int newPort;
 			
 			//Check the argument is there.
@@ -114,7 +104,6 @@ public class CLUIServer {
 			println("Changed port to " + newPort);
 		}
 		else if(command[0].equals("look")){
-			
 			char[][] map = srv.getMap();
 			String printOut = "";
 			
@@ -124,9 +113,7 @@ public class CLUIServer {
 				}
 				printOut = printOut + "\n";
 			}
-			
-			println(printOut);
-					
+			println(printOut);	
 		}
 		else if(command[0].equals("ip")){
 			println(srv.getIp());
@@ -144,7 +131,14 @@ public class CLUIServer {
 			println("Server stopped");
 			System.exit(0);
 		}
-		
+	}
+	
+	/**
+	 * Called when an internal server error occurs.
+	 */
+	@Override
+	public void errorOccured(String msg) {
+		System.err.println(msg);
 	}
 	
 	/**
@@ -153,11 +147,9 @@ public class CLUIServer {
 	 * @return Name of map.
 	 */
 	private static String getMapName(Scanner mapScn){
-		
 		println("Enter the name of the map you would like to load:");
 		String mapName = mapScn.nextLine();
 		return mapName;
-		
 	}
 	
 	/**
@@ -167,7 +159,6 @@ public class CLUIServer {
 	 */
 	private static int getPortNumber(Scanner portScn) 
 			throws CommandException{
-		
 		int port = -1;
 		
 		println("Enter the port to start the server on.");
@@ -191,8 +182,6 @@ public class CLUIServer {
 	 * @param message Message to print
 	 */
 	private static void println(String message){
-		
 		System.out.println(message);
-		
 	}
 }
