@@ -184,6 +184,25 @@ public class GameLogic {
 
 	return lookReply;
     }
+    
+    /**
+     * @return a 2x2 array containing a char representation of the map for the server interface.
+     */
+    public char[][] serverLook(){
+    	
+    	char[][] charMap = new char[map.getMapHeight()][map.getMapWidth()];
+    	
+    	//Iterate through, adding elements to the map.
+    	for(int rowix = 0; rowix < map.getMapHeight(); rowix++){
+    		for(int colix = 0; colix < map.getMapWidth(); colix++){
+    			charMap[rowix][colix] = map.getMapCell(new Location(colix, rowix)).toChar();
+    		}
+    	}
+    	
+    	return charMap;
+    			
+    }
+    
     /**
      * Handles the client message MOVE
      * 

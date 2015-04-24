@@ -23,8 +23,7 @@ public class ServerLogic{
 	private GameLogic 		game;
 	private ServerSocket 	connectionListener;
 	private boolean 		acceptingConnections;
-	
-	private int socket;
+	private int 			socket;
 	
 	/**
 	 * Creates an instance of a server object, which can be run to accept connections.
@@ -40,22 +39,16 @@ public class ServerLogic{
 		
 		//Create new gamelogic and load in the map.
 		try{
-			
 			game = new GameLogic(mapName);
-			
 		}
 		catch (ParseException e){
-
 			throw new CommandException("Syntax error on line " + e.getErrorOffset() + ":" + System.getProperty("line.separator") + e.getMessage());
-			
-		} catch (FileNotFoundException e) {
-			
+		} 
+		catch (FileNotFoundException e) {
 			throw new CommandException("Map file not found.");
-			
-		} catch (IllegalStateException e){
-			
+		} 
+		catch (IllegalStateException e){
 			throw new CommandException("Entered map is not valid: " + e.getMessage());
-			
 		}
 		
 		acceptingConnections = false;
@@ -79,22 +72,17 @@ public class ServerLogic{
 			throws CommandException{
 		
 		if(acceptingConnections == true){
-			
 			acceptingConnections = false;
 			
 			try {
-				
 				connectionListener.close();
-				
-			} catch (IOException e) {
-				
+			} 
+			catch (IOException e) {
 			}
 			
 		}
 		else{
-			
 			throw new CommandException("already stopped");
-			
 		}
 		
 	}
@@ -106,80 +94,64 @@ public class ServerLogic{
 			throws CommandException{
 		
 		if(acceptingConnections == false){
-			
 			acceptingConnections = true;
 			
 			//Start the listener thread.
 			(new Thread(){
 				
 				public void run(){
-					
+			
 					try {
-
 					  connectionListener = new ServerSocket(socket);
-					  
-					} catch (IOException e) {
-						
-						System.err.println("A client handling error occured.");
-						
+					} 
+					catch (IOException e) {
+						System.err.println("Failed to open server on socket " + socket);
+						acceptingConnections = false;
 					}
 							
 					while(acceptingConnections){
-						
 						try {		
-							
 							//Accept connections.
 							Socket usrSocket = connectionListener.accept();
 							
 							NetworkedUser usr = new NetworkedUser(game, usrSocket);
 							
 							//Start the user thread.
-							(new Thread(usr)).start();
-										
+							(new Thread(usr)).start();	
 						} 
 						catch (SocketException e){
-							
 							//The server has stopped listening.
-							
 						}
 						catch (IOException e) {
-							
 							System.err.println("An error with a client occured.");
-							
 						}
 					}
 				}
 			}).start();
-			
 		}
 		else{
-			
 			throw new CommandException("already started");
-			
 		}
 		
 	}
+	
+		
 	
 	/**
 	 * Changes the port the server is running on
 	 */
 	public synchronized void changePort(int port) 
 			throws CommandException{
-		
+	
 		if(isListening() == true){
-			
 			throw new CommandException("server is currently listening, port cannot be changed");
-			
 		}
 		
 		if(port < 0 || port > 65535){
-			
 			throw new CommandException("port was out of range.");
-			
 		}
 		
 		socket = port;
-		
 	}
 	
 	/**
@@ -189,13 +161,10 @@ public class ServerLogic{
 			throws CommandException{
 		
 		try {
-			
 			return InetAddress.getLocalHost().getHostAddress(); //This is not 100% reliable.
-			
-		} catch (UnknownHostException e) {
-			
+		} 
+		catch (UnknownHostException e) {
 			throw new CommandException("unknown host");
-			
 		}
 		
 	}
@@ -209,4 +178,13 @@ public class ServerLogic{
 		return acceptingConnections;
 		
 	}
+	
+    /**
+     * @return a 2x2 array containing a char representation of the map for the server interface.
+     */
+    public char[][] getMap(){
+    	
+    	return game.serverLook();
+    			
+    }
 }

@@ -35,19 +35,14 @@ public class CLUIServer {
 		scn = setScn;
 		
 		while(true){
-			
-			try {
-				
+			try {				
 				int port = getPortNumber(scn);
 	
 				srv = new ServerLogic(getMapName(scn), port);
 				break;
-					
 			}
-			catch (CommandException e) {
-				
-				println("An error occured: " + e.getMessage());
-				
+			catch (CommandException e) {				
+				println("An error occured: " + e.getMessage());				
 			}
 		}
 		
@@ -57,26 +52,21 @@ public class CLUIServer {
 			public void run(){
 				
 				while(true){
-					
 					String input = scn.nextLine();
 					input = input.toLowerCase();
 					
-					try {
-						
-						processCommand(input);
-						
-					} catch (CommandException e) {
-						
-						println("An error occured: " + e.getMessage());
-						
+					try {		
+						processCommand(input);	
+					} catch (CommandException e) {				
+						println("An error occured: " + e.getMessage());					
 					}
-
 				}
 			}
 			
-		}).run();
+		}).start();
 		
 		println("Server started");
+	
 	}
 	
 	/**
@@ -93,6 +83,7 @@ public class CLUIServer {
 			//A help message.
 			println("Available server commands: "
 					+ "\nhelp - displays this message. "
+					+ "\nlook - a representation of the map will be printed"
 					+ "\nport - select a new port to run the server on. Requires an argument. "
 					+ "\nip - returns the IP address of this system. "
 					+ "\nstart - starts listening for new clients. "
@@ -105,58 +96,54 @@ public class CLUIServer {
 			int newPort;
 			
 			//Check the argument is there.
-			if(command.length < 2){
-				
-				throw new CommandException("port requires an argument");
-				
+			if(command.length < 2){				
+				throw new CommandException("port requires an argument");				
 			}
-			else if(command.length > 2){
-				
-				throw new CommandException("port only takes one argument");
-				
+			else if(command.length > 2){				
+				throw new CommandException("port only takes one argument");				
 			}
 			
 			//Handle error - is the number a number.
-			try{		
-				
-				newPort = Integer.parseInt(command[1]);
-				
+			try{						
+				newPort = Integer.parseInt(command[1]);				
 			}
-			catch(NumberFormatException e){
-				
+			catch(NumberFormatException e){	
 				throw new CommandException("the argument entered is not a number");
-				
 			}
-			
 			srv.changePort(newPort);
 			println("Changed port to " + newPort);
+		}
+		else if(command[0].equals("look")){
 			
+			char[][] map = srv.getMap();
+			String printOut = "";
+			
+			for(int rowix = 0; rowix < map.length; rowix++){
+				for(int colix = 0; colix < map[0].length; colix++){
+					printOut = printOut + map[rowix][colix];
+				}
+				printOut = printOut + "\n";
+			}
+			
+			println(printOut);
+					
 		}
 		else if(command[0].equals("ip")){
-			
 			println(srv.getIp());
-			
 		}
 		else if(command[0].equals("start")){
-			
 			srv.startListening();
 			println("Now listening for clients.");
-			
 		}
 		else if(input.startsWith("stop")){
-			
 			srv.stopListening();
 			println("Stopped listening for clients.");
-			
 		}
-		else if(command[0].equals("quit")){
-			
+		else if(command[0].equals("quit")){	
 			srv.stopServer();
 			println("Server stopped");
 			System.exit(0);
-			
 		}
-
 		
 	}
 	
@@ -186,24 +173,17 @@ public class CLUIServer {
 		println("Enter the port to start the server on.");
 		
 		try{
-			
 			port = Integer.parseInt(portScn.nextLine());
-			
 		}
 		catch(NumberFormatException e){
-			
 			throw new CommandException("value entered was not a number");
-			
 		}
 		
 		if(port < 0 || port > 65535){
-			
 			throw new CommandException("port was out of range.");
-			
 		}
 		
 		return port;
-		
 	}
 	
 	/**
