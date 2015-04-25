@@ -95,13 +95,6 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		
 		infoPanel.setPort(port);
 		
-		if(srv.isListening()){
-			infoPanel.setListening();
-		}
-		else{
-			infoPanel.setNotListening();
-		}
-		
 		srv.addUpdateWatcher(this);
 		this.setVisible(true);
 		
@@ -113,6 +106,14 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		    	System.exit(0);
 		    }
 		});
+		
+		//Server started now, update display.
+		if(srv.isListening()){
+			infoPanel.setListening();
+		}
+		else{
+			infoPanel.setNotListening();
+		}
 	}
 	
 	/**
@@ -133,11 +134,6 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 	 */
 	@Override
 	public void errorOccured(String msg) {
-		
-		if(msg.startsWith("Failed to start server on socket")){
-			infoPanel.setNotListening();
-		}
-		
 		showError(msg);		
 	}
 	
