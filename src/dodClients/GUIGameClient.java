@@ -10,6 +10,7 @@ package dodClients;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
@@ -17,6 +18,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -27,10 +29,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import dodGUI.GameInfoPanel;
 import dodGUI.ItemInfoPanel;
+import dodGUI.OutputPanel;
 import dodGUI.VisionPanel;
 import dodUtil.CommandException;
 import dodUtil.Interrupter;
@@ -43,8 +47,19 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	private VisionPanel vp;
 	private GameInfoPanel infoPanel;
 	private ItemInfoPanel itemPanel;
+	private OutputPanel chatOutput;
 	
 	private NetworkClient nc;
+	
+	//This 'message stack' can be pushed to in order to queue up a command to be sent to the server.
+	private BlockingDeque<String> messageStack = new LinkedBlockingDeque<String>(1);
+	
+	private String commandWaitingForResponse = ""; //Commands that are awaiting a response are put here - and cleared when the response is received.
+	private boolean waitingForResponse = false; //Tells the message getting thread if it should wait.
+	
+	private Interrupter interrupter; //Special interrupter.
+	
+	private String nextMessageFrom; //Keeps track of who sent the last message.
 	
 	private ActionListener commandAl = new ActionListener(){
 		
@@ -70,14 +85,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			}
 		}
 	}; //Action listener for talking to the server.
-	
-	//This 'message stack' can be pushed to in order to queue up a command to be sent to the server.
-	private BlockingDeque<String> messageStack = new LinkedBlockingDeque<String>(1);
-	
-	private String commandWaitingForResponse = ""; //Commands that are awaiting a response are put here - and cleared when the response is received.
-	private boolean waitingForResponse = false; //Tells the message getting thread if it should wait.
-	
-	private Interrupter interrupter;
 	
 	/**
 	 * Start new clientGUI.
@@ -125,25 +132,25 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		vp = new VisionPanel(5, 5, true);
 		vp.writeArr();
 		
+		//Output chat messages here
+		chatOutput = new OutputPanel();
+		
 		//Setup this underlying main pane.
 		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
-		this.setSize(700, 600);
-		this.setMinimumSize(new Dimension(700, 600));
+		this.setSize(600, 500);
+		//this.setMinimumSize(new Dimension(700, 600));
 		this.setVisible(true);
 		
 		this.setJMenuBar(createMenuBar());
 		
-		//Add everything to this panel - including struts and glue.
-		this.add(Box.createVerticalGlue());
+		//Add top panel
 		this.add(createTopPanel());
-		this.add(Box.createVerticalStrut(5));
-		this.add(Box.createVerticalGlue());
 		this.add(createGameActionPanel());
-		this.add(Box.createVerticalGlue());
 		this.add(infoPanel);
-		this.add(Box.createVerticalGlue());
 		this.add(itemPanel);
-		this.add(Box.createVerticalGlue());
+		
+		//Add bottom panel.
+		//this.add(bottomPanel, BorderLayout.SOUTH);
 		
 		//Connect to client.
 		try {
@@ -193,13 +200,18 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				this.repaint();
 			}
 		}
+		else if(message.startsWith("FROM")){
+			//Next message will be from this person.
+			nextMessageFrom = message.replace("FROM ", "");
+		}
 		else if(message.startsWith("MESSAGE")){
 			//Informational message for the user.
 			commandWaitingForResponse = "";
 			
 			message = message + " ";
 			message = message.replace("MESSAGE ", "");
-			infoPanel.println(message);	
+			chatOutput.println("<" + nextMessageFrom + ">: " +
+					message);	
 		}
 		else if(message.startsWith("FAIL")){
 			//Failure message for the user.
@@ -418,7 +430,33 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 * @return The top panel.
 	 */
 	private JPanel createTopPanel(){
-		//Create the navigation panel.
+		JPanel leftHandSide = new JPanel();
+		leftHandSide.setLayout(new GridLayout(2,1));
+		
+		//Create pane for chat and nav.
+		JPanel nav = navPanel();
+		JPanel chat = chatPanel(chatOutput);
+		leftHandSide.add(nav);
+		leftHandSide.add(chat);
+		
+		//Create pane for vp.
+		JScrollPane vpPane = new JScrollPane(vp);
+		vpPane.setBorder(BorderFactory.createEmptyBorder());
+		
+		//Create the panel to return;
+		JPanel topPanel = new JPanel();
+		topPanel.setLayout(new GridLayout(1,2));
+		
+		topPanel.add(vpPane);
+		topPanel.add(leftHandSide); //Put the visionpanel in a scrollpane.
+		
+		return topPanel;
+	}
+	
+	/**
+	 * Creates the navigation panel.
+	 */
+	private JPanel navPanel(){
 		//Everything will go in a border layout.
 		JPanel nav = new JPanel();
 		nav.setLayout(new BorderLayout());
@@ -429,6 +467,12 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		JButton south = new JButton("S");
 		JButton west = new JButton("W");
 		JButton attackToggle = new JButton("Move Mode");
+		
+		//Set prefered sizes.
+		north.setPreferredSize(new Dimension(50, 50));
+		east.setPreferredSize(new Dimension(50, 50));
+		west.setPreferredSize(new Dimension(50, 50));
+		south.setPreferredSize(new Dimension(50, 50));
 
 		//Set action commands.
 		north.setActionCommand("MOVE N");
@@ -483,16 +527,52 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		};
 		
 		attackToggle.addActionListener(toggleAl);
-		JPanel topPanel = new JPanel();
-		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.LINE_AXIS));
-		topPanel.add(Box.createHorizontalGlue());
-		topPanel.add(new JScrollPane(vp)); //Put the visionpanel in a scrollpane.
-		topPanel.add(Box.createHorizontalGlue());
-		topPanel.add(nav);
-		topPanel.add(Box.createHorizontalGlue());
 		
-		return topPanel;
+		return nav;
 	}
+	
+	/**
+	 * Creates the chat panel
+	 */
+	private JPanel chatPanel(OutputPanel outputArea){
+		JPanel chatPanel = new JPanel();
+		chatPanel.setLayout(new BorderLayout());
+		
+		//Set up the input panel.
+		JPanel inputPanel = new JPanel();
+		inputPanel.setLayout(new GridLayout(1,2));
+		
+		JTextField inputArea = new JTextField(); 
+		
+		JButton submitButton = new JButton("Send");
+	
+		inputPanel.add(inputArea);;
+		inputPanel.add(submitButton);
+		
+		ActionListener sendMessage = new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				if(inputArea.getText().equals("") == false){
+					try {
+						messageStack.put("SHOUT " + inputArea.getText());
+					} catch (InterruptedException e1) {
+					}
+					inputArea.setText("");
+				}
+			}
+		};
+		
+		//Sends the message when the button is pressed.
+		submitButton.addActionListener(sendMessage);
+		//Or when enter is pressed/
+		inputArea.addActionListener(sendMessage);
+		
+		//Add these all to the chatPanel.
+		chatPanel.add(outputArea, BorderLayout.CENTER);
+		chatPanel.add(inputPanel, BorderLayout.SOUTH);
+	
+		return chatPanel;
+	}
+	
 	/**
 	 * Creates a JPanel containing buttons for in game actions.
 	 * @return
@@ -522,6 +602,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 * @return Menu bar created.
 	 */
 	private JMenuBar createMenuBar(){
+		//Some way to refer to this JFrame:
 		JFrame thisFrame = this;
 			
 		JMenuBar menuBar = new JMenuBar();
@@ -531,33 +612,39 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		
 		//Create menu items.
 		JMenuItem newGame = new JMenuItem("Switch Server");
+		JMenuItem aboutGame = new JMenuItem("About");
 		JMenuItem quitGame = new JMenuItem("Quit");
 		
-		//Action listener to quit the game.
-		ActionListener quitGameAl = new ActionListener(){
-			public void actionPerformed(ActionEvent e) {
-				nc.stopClient();
-				System.exit(0);
-			}
-		};
-		
 		//Action Listener to start a new game.
-		
-		//Some way to refer to this JFrame:
-		
-		
-		ActionListener newGameAl = new ActionListener(){	
+		newGame.addActionListener(new ActionListener(){	
 			public void actionPerformed(ActionEvent e) {
 				nc.stopClient();
 				thisFrame.dispose();
 				new GUIGameClient();
 			}
-		};
+		});
 		
-		newGame.addActionListener(newGameAl);
-		quitGame.addActionListener(quitGameAl);
+		//Action listener to quit the game.
+		aboutGame.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(thisFrame, "Play as James Gosling (father of the Java language) and race to collect the JDollars that Sun desperately needs. "
+						+ "\nBut watch out for Bill Gates and his evil clones!"
+						+ "\n\nA GUI client for the Dungeon Of Doom Coursework 3 server."
+						+ "\nBy Zachary Shannon "
+						+ "\nzs380@bath.ac.uk", "About", JOptionPane.PLAIN_MESSAGE);
+			}
+		});
+		
+		//Action listener to quit the game.
+		quitGame.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+		
 		
 		game.add(newGame);
+		game.add(aboutGame);
 		game.add(quitGame);
 		menuBar.add(game);
 		

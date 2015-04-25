@@ -19,6 +19,9 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
     // The game which the command line user will operate on.
     // This is private to enforce the use of "processCommand".
     private final GameLogic game;
+    
+    //The name of this player.
+    private String myName = "A Player";
 
     // The player must be added oto the map. Initially it is not,
     private boolean playerAdded = false;
@@ -56,6 +59,15 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
     public void sendMessage(String message) {
 	outputMessage("MESSAGE " + message, false);
     }
+    
+    /**
+     * Gives the player the name of the player about to send a message.
+     *  - Zachary Shannon
+     */
+	@Override
+	public void sendName(String name) {
+		outputMessage("FROM " + name, false);
+	}
 
     /**
      * Informs the user of the beginning of a player's turn
@@ -117,8 +129,8 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
     protected final void processCommand(String commandString) {
 	// Because continuously pressing the shift key while testing made my
 	// finger hurt...
-	commandString = commandString.toUpperCase();
-
+	//commandString = commandString.toUpperCase();
+	
 	// Process the command string e.g. MOVE N
 	final String commandStringSplit[] = commandString.split(" ", 2);
 	final String command = commandStringSplit[0];
@@ -194,6 +206,7 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
 	    }
 
 	    final String name = sanitiseMessage(arg);
+	    myName = name; //For new chat client functionality.
 	    this.waitingForResponse = true;
 	    this.game.clientHello(name, this.playerID);
 	    outputMessage("HELLO " + name, true);
@@ -246,7 +259,7 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
 		throw new CommandException("need something to shout");
 	    }
 
-	    this.game.clientShout(sanitiseMessage(arg));
+	    this.game.clientShout(arg, myName);
 
 	} else if (command.equals("SETPLAYERPOS")) {
 	    if (arg == null) {

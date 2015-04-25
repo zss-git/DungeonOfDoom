@@ -398,8 +398,9 @@ public class GameLogic {
      * @param message
      *            The message to be shouted
      */
-    public void clientShout(String message) {
+    public void clientShout(String message, String from) {
 	for (final Player player : this.players) {
+		player.sendName(from);
 	    player.sendMessage(message);
 	}
     }
@@ -754,7 +755,8 @@ public class GameLogic {
 			    // Everyone else is informed of the win.
 			    for(Player p : players){
 			    	if(p.hasWon() == false){
-				    	p.sendMessage("Someone has won the game!!");
+			    		p.sendName("SERVER");				    	
+			    		p.sendMessage("Someone has won the game!!");
 				    	p.lose();
 			    	}
 			    }

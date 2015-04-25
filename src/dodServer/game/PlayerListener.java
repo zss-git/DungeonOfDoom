@@ -57,5 +57,11 @@ public interface PlayerListener {
      *            the amount of gold gained or lost
      */
     public void treasureChange(int value);
+
+    /**
+     * Informs the listener that a message will follow from this player.
+     * @param name
+     */
+	public void sendName(String name);
  
 }

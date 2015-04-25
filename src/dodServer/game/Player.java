@@ -265,6 +265,14 @@ public class Player implements GameItemConsumer {
     public void sendMessage(String message) {
 	this.listener.sendMessage(message);
     }
+    
+    /**
+     * Sends the name of the sender of the next message.
+     * @param sender The name of the sender.
+     */
+    public void sendName(String name){
+    	this.listener.sendName(name);
+    }
 
     /**
      * Handle the start of a player's turn
