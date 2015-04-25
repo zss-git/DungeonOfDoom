@@ -151,10 +151,10 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		JMenu clientsMenu = new JMenu("Clients");
 		
 		//Create menu items.
-		JMenuItem applicationQuit = new JMenuItem("Quit");
 		JMenuItem applicationNew = new JMenuItem("New Game");
 		JMenuItem applicationHideMap = new JMenuItem("Hide Map");
 		JMenuItem applicationAbout = new JMenuItem("About");
+		JMenuItem applicationQuit = new JMenuItem("Quit");
 		
 		JMenuItem serverStart = new JMenuItem("Start Listening");
 		JMenuItem serverStop = new JMenuItem("Stop Listening");
@@ -163,10 +163,10 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		JMenuItem clientBot = new JMenuItem("Add Bot");
 		
 		//Add them to the appropriate menus.
-		applicationMenu.add(applicationQuit);
 		applicationMenu.add(applicationNew);
 		applicationMenu.add(applicationHideMap);
 		applicationMenu.add(applicationAbout);
+		applicationMenu.add(applicationQuit);
 		
 		serverMenu.add(serverStart);
 		serverMenu.add(serverStop);
@@ -181,12 +181,6 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		
 		//Add actionlisteners.
 		//Quits the application
-		applicationQuit.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent e) {
-				srv.stopServer();
-				System.exit(0);
-			}
-		});
 		
 		//Starts a new game
 		applicationNew.addActionListener(new ActionListener(){
@@ -215,8 +209,15 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		//Brings up an about menu.
 		applicationAbout.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(thisFrame, "A simple GUI client for the Dungeon of Doom Server"
+				JOptionPane.showMessageDialog(thisFrame, "A simple GUI client for the Dungeon of Doom Server."
 						+ "\nBy Zachary Shannon", "About", JOptionPane.PLAIN_MESSAGE);
+			}
+		});
+		
+		applicationQuit.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				srv.stopServer();
+				System.exit(0);
 			}
 		});
 		
