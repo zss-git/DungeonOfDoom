@@ -161,5 +161,4 @@ public class GameInfoPanel extends JPanel {
 		this.validate();
 		this.repaint();
 	}
-	
 }

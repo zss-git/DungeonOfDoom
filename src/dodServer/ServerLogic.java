@@ -65,7 +65,13 @@ public class ServerLogic{
 	 * Stops the server
 	 */
 	public synchronized void stopServer(){
-		acceptingConnections = false;	
+		acceptingConnections = false;
+		
+		try {
+			connectionListener.close();
+		} 
+		catch (IOException e) {
+		}
 	}
 	
 	/**

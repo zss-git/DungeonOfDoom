@@ -1,16 +1,21 @@
 /**
  * A special bot proves it isn't cheating by operating as a network client with no special access to the server. Just moves randomly at the moment!
+ * Coded very quickly for coursework 2.
+ * Needs updating to use some of the new stuff I have learnt.
  * 
  * @author Zachary Shannon
  */
 
 package dodClients;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
+import dodUtil.CommandException;
+
 public class AIGameClient implements NetworkMessageListener{
+	
+	private NetworkClient nc;
 	
 	private String nextCommand = "LOOK";
 	private boolean commandSet = false;
@@ -28,8 +33,7 @@ public class AIGameClient implements NetworkMessageListener{
 	private boolean hasSword = false;
 	
 	//For the 'look' command and reading it.
-	private ArrayList<String> lookReply = new ArrayList<String>();
-	private boolean readingLookReply;
+	private LookParser lp = new LookParser();
 	private char[][] fov;
 	
 	
@@ -38,15 +42,20 @@ public class AIGameClient implements NetworkMessageListener{
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new AIGameClient();
+		Scanner scn = new Scanner(System.in);
+		new AIGameClient(CLUIGameClient.getAddress(scn),CLUIGameClient.getPort(scn));
+		scn.close();
 	}
 	/**
 	 * Sets up a scanner and a NetworkClient.
 	 */
-	public AIGameClient(){
-		Scanner scn = new Scanner(System.in);
-		new NetworkClient(CLUIGameClient.getAddress(scn), CLUIGameClient.getPort(scn), this);
-		scn.close();
+	public AIGameClient(String address, int port){
+		try {
+			nc = new NetworkClient(address, port, this);
+		} catch (CommandException e) {
+			System.err.println(e.getMessage());
+			return;
+		}
 	}
 	/**
 	 * Makes decisions based upon a message given to it. An implementation of the NetworkMessageListener interface.
@@ -60,47 +69,27 @@ public class AIGameClient implements NetworkMessageListener{
 			//By default, prints everything out that its doing.
 			System.out.println(message);
 			
-			//Makes decisions based on messages.		
+			//Makes decisions based on messages.
 			
-			if(message.startsWith("WIN")){
-				System.out.println("I've won the game! Exiting...");
-				System.exit(0);
-			}
-			
-			//Shouts
-			if(message.startsWith("MESSAGE")){
-				return;
-			}
-			
-			if(message.startsWith("FAIL the game is over") || message.startsWith("WIN")){
-				System.exit(0); //If the game is over, leave.
-			}
-			
-			if(readingLookReply){
-				//Add to the look reply.
-				lookReply.add(message);
-				if(lookReply.size() == ((lookDistance*2)+1)){
-					readingLookReply = false;
-					handleLookReply();
+			//Handle looks.
+			if(lp.isPartOfLook(message)){
+				if(lp.hasLook()){
+					fov = lp.getLook();
+					
 				}
 				return;
 			}
-			
-			//Attempts to handle look reply - expects a certain number of lines of look reply.
-			if(message.startsWith("LOOKREPLY")){
-				lookReply.clear(); //Clear the list.
-				readingLookReply = true;
-				return;
+			else if(message.startsWith("WIN")){ //Winning
+				System.out.println("I've won the game! Exiting...");
+				nc.stopClient();
 			}
-			
-			if(message.startsWith("GOLD")){
+			else if(message.startsWith("GOLD")){
 				//Set the win conditions.
 				needToWin = Integer.parseInt(message.substring(5));
 				System.out.println("I've discovered that I need " + needToWin + " gold to win!");
 				return;
 			}
-			
-			if(message.startsWith("STARTTURN")){
+			else if(message.startsWith("STARTTURN")){
 				myTurn = true;
 				System.out.println("Bots turn has begun.");
 				shouldILook = true;
@@ -136,8 +125,9 @@ public class AIGameClient implements NetworkMessageListener{
 			}
 		}
 		catch(NullPointerException e){
-			System.err.println("Server seems to have closed connection - closing.");
-			System.exit(1);
+			System.err.println("Server seems to have closed connection.");
+			e.printStackTrace();
+			nc.stopClient();
 		}
 		
 	}
@@ -163,22 +153,6 @@ public class AIGameClient implements NetworkMessageListener{
 		
 	}
 	/**
-	 * Processes the look replys arraylist and makes it into a 2d array.
-	 */
-	private void handleLookReply(){
-		System.out.println("Parsing lookreply.");
-		fov = new char[((lookDistance*2)+1)][((lookDistance*2)+1)];
-		
-		for(int rowix = 0; rowix < lookReply.size(); rowix++){
-			
-			String curRow = lookReply.get(rowix);
-			
-			for(int colix = 0; colix < curRow.length(); colix++){
-				fov[rowix][colix] = curRow.charAt(colix);
-			}
-		}
-	}
-	/**
 	 * Logic for making moves. Currently mostly random, pretty poor logic.
 	 */
 	private void makeAMove(){
@@ -195,7 +169,6 @@ public class AIGameClient implements NetworkMessageListener{
 			commandSet = true;
 			hasLantern = true;
 			lookDistance = 3;
-			shouldILook = true;
 			return;
 		}
 		else if(centralSquare() == 'S' && hasSword == false){
@@ -286,6 +259,6 @@ public class AIGameClient implements NetworkMessageListener{
 	 * @return
 	 */
 	private char centralSquare(){
-		return fov[lookDistance][lookDistance];
+		return fov[(fov.length-1)/2][(fov[0].length-1)/2];
 	}
 }

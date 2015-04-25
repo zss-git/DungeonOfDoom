@@ -19,8 +19,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import dodClients.AIGameClient;
 import dodGUI.ServerInfoPanel;
 import dodGUI.VisionPanel;
+import dodServer.game.GameLogic;
 import dodUtil.CommandException;
 import dodUtil.ErrorListener;
 import dodUtil.UpdateWatcher;
@@ -33,7 +35,11 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 	private boolean			showMap = true;
 	private ServerInfoPanel infoPanel;
 	
+	private String 			mapName;
+	private int				port;
+	
 	private ServerLogic		srv;
+	
 	
 	/**
 	 * Creates a new instance of this GUI.
@@ -43,13 +49,12 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		//Running on the event dispatch thread as per the java tutorial recommendation: https://docs.oracle.com/javase/tutorial/uiswing/concurrency/initial.html
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
-		        new GUIServer();
+		    	new GUIServer();
 		    }
 		});
 	}
-
 	public GUIServer(){
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Exit on close.
+		
 		this.setLayout(new BorderLayout());
 		
 		//Create GUI stuff
@@ -63,29 +68,28 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		
 		this.setJMenuBar(createMenuBar());
 		
-		this.setSize(450, 450); 
+		this.setSize(650, 450); 
+		
 
 		//Start up the server object.
-		int port = -1;
-		while(true){
-			try {				
-				port = getPort(true);
-	
-				srv = new ServerLogic(getMapName(), port, this);
-				break;
-			}
-			catch (CommandException e) {				
-				JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);				
-			}
+		port = -1;
+		try {				
+			port = getPort();
+			mapName = getMapName();
+			srv = new ServerLogic(mapName, port, this);
+		}
+		catch (CommandException e) {				
+			showWarning(e.getMessage());
+			System.exit(-1);
 		}
 		
-		this.update(); //Update the representation of the map.
+		this.updateMap(); //Update the representation of the map.
 		
 		//Sort out the status bar display.
 		try {
 			infoPanel.setIp(srv.getIp());
 		} catch (CommandException e) {
-			JOptionPane.showMessageDialog(this, "Error getting ip address: " + e.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+			showWarning(e.getMessage());	
 			infoPanel.setIp("error");
 		}
 		
@@ -100,24 +104,29 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		
 		srv.addUpdateWatcher(this);
 		this.setVisible(true);
+		
+		//Add a window listener, that shuts down the server on close - 
+		//from http://stackoverflow.com/questions/9093448/do-something-when-the-close-button-is-clicked-on-a-jframe
+		this.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		    	srv.stopServer();
+		    	System.exit(0);
+		    }
+		});
 	}
 	
 	/**
 	 * Called to update the representation of the map.
 	 */
 	@Override
-	public void update() {
-		if(showMap == true){
-			char[][] mapArr = srv.getMap();
-			vp.changeSize(mapArr[0].length, mapArr.length);
-			vp.writeArr(mapArr);
+	public void update(int update) {
+		if(update == GameLogic.MAP_UPDATED){
+			updateMap();
 		}
-		else{
-			vp.writeArr();
+		else if(update == GameLogic.GAME_OVER){
+			JOptionPane.showMessageDialog(this, "A player won the game", "Winner found", JOptionPane.PLAIN_MESSAGE);
 		}
-		
-		this.validate();
-		this.repaint();
 	}
 	
 	/**
@@ -125,7 +134,7 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 	 */
 	@Override
 	public void errorOccured(String msg) {
-		JOptionPane.showMessageDialog(this, "Error: " + msg, "Error", JOptionPane.ERROR_MESSAGE);
+		showError(msg);		
 	}
 	
 	/**
@@ -139,6 +148,7 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		//Create menus
 		JMenu applicationMenu = new JMenu("Application");
 		JMenu serverMenu = new JMenu("Server");
+		JMenu clientsMenu = new JMenu("Clients");
 		
 		//Create menu items.
 		JMenuItem applicationQuit = new JMenuItem("Quit");
@@ -150,6 +160,8 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		JMenuItem serverStop = new JMenuItem("Stop Listening");
 		JMenuItem changePort = new JMenuItem("Change port");
 		
+		JMenuItem clientBot = new JMenuItem("Add Bot");
+		
 		//Add them to the appropriate menus.
 		applicationMenu.add(applicationQuit);
 		applicationMenu.add(applicationNew);
@@ -160,9 +172,12 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		serverMenu.add(serverStop);
 		serverMenu.add(changePort);
 		
+		clientsMenu.add(clientBot);
+		
 		//Add menus to menu bar.
 		menuBar.add(applicationMenu);
 		menuBar.add(serverMenu);
+		menuBar.add(clientsMenu);
 		
 		//Add actionlisteners.
 		//Quits the application
@@ -193,7 +208,7 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 					showMap = true;
 					applicationHideMap.setText("Hide Map");
 				}
-				update();
+				updateMap();
 			}
 		});
 		
@@ -212,7 +227,7 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 					srv.startListening();
 					infoPanel.setListening();
 				} catch (CommandException ce) {
-					JOptionPane.showMessageDialog(thisFrame, "Error: " + ce.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+					showWarning(ce.getMessage());		
 				}
 			}
 		});
@@ -224,7 +239,7 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 					srv.stopListening();
 					infoPanel.setNotListening();
 				} catch (CommandException ce) {
-					JOptionPane.showMessageDialog(thisFrame, "Error: " + ce.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+					showWarning(ce.getMessage());		
 				}
 			}
 		});
@@ -233,32 +248,55 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		changePort.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
 				try {
-					int newPort = getPort(false);
+					int newPort = getPort();
 					srv.changePort(newPort);
 					infoPanel.setPort(newPort);
 				} catch (CommandException ce) {
-					JOptionPane.showMessageDialog(thisFrame, "Error: " + ce.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+					showWarning(ce.getMessage());		
 				}
 			}
 		});
+		
+		//Adds a bot to the game.
+		clientBot.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				new AIGameClient("localhost", port);
+			}
+		});
+		
 		return menuBar;
 	}
 	
 	/**
+	 * Updates the map from the server.
+	 */
+	private void updateMap(){
+		if(showMap == true){
+			char[][] mapArr = srv.getMap();
+			vp.changeSize(mapArr[0].length, mapArr.length);
+			vp.writeArr(mapArr);
+		}
+		else{
+			vp.writeArr();
+		}
+		
+		this.validate();
+		this.repaint();
+	}
+	
+	/**
 	 * Gets a port, double checks it is valid - method largely borrowed from GUIGameClient.
-	 * @param quitOnCancel Whether or not to quit when the cancel button is pressed.
 	 * @return port specified by the user
 	 */
-	private int getPort(boolean quitOnCancel) 
+	private int getPort() 
 			throws CommandException{
 		int port = -1;
 		
 		try{
 			String userInput = JOptionPane.showInputDialog("Enter the port number for this server:");
+			
 			if(userInput == null){
-				if(quitOnCancel){
-					System.exit(0); //Null input should mean the user wants the client to quit.
-				}
+				System.exit(0);
 			}
 			else{
 				port = Integer.parseInt(userInput);
@@ -283,10 +321,22 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		String name = JOptionPane.showInputDialog("Enter the path to the map to load"); //Prompt the user.
 		
 		if(name == null){
-			System.exit(0); //Null input should mean the user wants the client to quit.
+			System.exit(0);
 		}
 		return name;
 	}
-
-
+	
+	/**
+	 * @param msg Shows an error with this message.
+	 */
+	private void showError(String msg){
+		JOptionPane.showMessageDialog(this, "Error: " + msg, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+	
+	/**
+	 * @param msg Shows a warning with this message
+	 */
+	private void showWarning(String msg){
+		JOptionPane.showMessageDialog(this, "Warning: " + msg, "Warning", JOptionPane.WARNING_MESSAGE);
+	}
 }

@@ -14,6 +14,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import dodUtil.CommandException;
+
 public class NetworkClient {
 	
 	private Socket sckt;
@@ -28,7 +30,8 @@ public class NetworkClient {
 	/**
 	 * Constructor - sets up the connection.
 	 */
-	public NetworkClient(String address, int port, NetworkMessageListener setListener){
+	public NetworkClient(String address, int port, NetworkMessageListener setListener) 
+			throws CommandException{
 
 		//Setup ports.
 		try {
@@ -38,11 +41,11 @@ public class NetworkClient {
 			wrtr = new PrintWriter(new OutputStreamWriter(sckt.getOutputStream()), true);
 			
 		} catch (UnknownHostException e) {
-			System.err.println("Host not found.");
-			System.exit(1);
+			throw new CommandException("Host not found.");
 		} catch (IOException e) {
-			System.err.println("Error connecting to host. Are you sure the host listening is on this port?");
-			System.exit(1);
+			throw new CommandException("Error connecting to host. Are you sure the host listening is on this port?");
+		} catch (IllegalArgumentException e){
+			throw new CommandException("Invalid port or address");
 		}
 		
 		startInputThread();

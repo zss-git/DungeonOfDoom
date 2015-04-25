@@ -8,6 +8,8 @@ package dodClients;
 
 import java.util.Scanner;
 
+import dodUtil.CommandException;
+
 public class CLUIGameClient implements NetworkMessageListener{
 	
 	private Scanner scn;
@@ -24,7 +26,12 @@ public class CLUIGameClient implements NetworkMessageListener{
 	 */
 	public CLUIGameClient(){
 		scn = new Scanner(System.in);
-		new NetworkClient(CLUIGameClient.getAddress(scn), CLUIGameClient.getPort(scn), this);
+		try {
+			new NetworkClient(CLUIGameClient.getAddress(scn), CLUIGameClient.getPort(scn), this);
+		} catch (CommandException e) {
+			System.err.println(e.getMessage());
+			return;
+		}
 	}
 	/**
 	 * Static method asks stdin for a network address. No validation is provided.

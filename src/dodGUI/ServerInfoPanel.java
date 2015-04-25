@@ -14,6 +14,7 @@ public class ServerInfoPanel extends JPanel {
 	private JLabel listeningLabel;
 	private JLabel ipLabel;
 	private JLabel portLabel;
+	private JLabel infoLabel;
 	
 	/**
 	 * Creates new ServerInfoPanel.
@@ -25,6 +26,7 @@ public class ServerInfoPanel extends JPanel {
 		
 		ipLabel = new JLabel("Loading...");
 		portLabel = new JLabel("Loading...");
+		infoLabel = new JLabel("");
 		
 		//Add everything and the spacers.
 		this.add(Box.createHorizontalStrut(1));
@@ -33,6 +35,8 @@ public class ServerInfoPanel extends JPanel {
 		this.add(ipLabel);
 		this.add(Box.createHorizontalStrut(1));
 		this.add(portLabel);
+		this.add(Box.createHorizontalStrut(30));
+		this.add(infoLabel);
 		this.add(Box.createHorizontalStrut(1));
 		
 		//Set preferred size.
@@ -66,5 +70,15 @@ public class ServerInfoPanel extends JPanel {
 	 */
 	public void setPort(int newPort){
 		portLabel.setText("Port: " + newPort);
+	}
+	
+	/**
+	 * Sets the info label.
+	 * @param prt New value of info label.
+	 */
+	public void println(String prt){
+		infoLabel.setText(prt);
+		this.validate();
+		this.repaint();
 	}
 }

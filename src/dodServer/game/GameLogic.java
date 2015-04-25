@@ -1,3 +1,6 @@
+/**
+ * Handles all of the game logic for the Dungeon of Doom game.
+ */
 package dodServer.game;
 
 import java.io.FileNotFoundException;
@@ -14,13 +17,13 @@ import dodServer.game.items.Sword;
 import dodUtil.CommandException;
 import dodUtil.UpdateWatcher;
 
-/**
- * This class controls the game logic and interaction between players. Caution:
- * not thread-safe, but will need to be made so for a networked game.
- * 
- * Synchronized some methods for network play and added a render hint method - Zachary Shannon.
- */
+
 public class GameLogic {
+	
+	//Updates for the update watchers.
+	public static final int MAP_UPDATED = 1;
+	public static final int GAME_OVER = 2;
+	
     Map map;
 
     // Has a player won already?
@@ -463,7 +466,7 @@ public class GameLogic {
     public void mapUpdated(){
     	
     	for(UpdateWatcher w : updateWatchers){
-    		w.update();
+    		w.update(GameLogic.MAP_UPDATED);
     	}
     	
     }
@@ -746,10 +749,8 @@ public class GameLogic {
 		    // Player should not be able to move if they have won.
 		    assert (!this.playerWon);
 		    
-		    
 		    player.win();
 		    if(playerWon == false){
-
 			    // Everyone else is informed of the win.
 			    for(Player p : players){
 			    	if(p.hasWon() == false){
@@ -758,6 +759,10 @@ public class GameLogic {
 			    	}
 			    }
 		    }
+		    
+		    for(UpdateWatcher w : updateWatchers){
+	    		w.update(GameLogic.GAME_OVER);
+	    	}
 		    
 		    this.playerWon = true;
 		    
@@ -787,5 +792,4 @@ public class GameLogic {
 	
 		startTurn();
     }
-
 }

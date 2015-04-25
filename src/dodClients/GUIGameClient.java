@@ -32,6 +32,7 @@ import javax.swing.SwingUtilities;
 import dodGUI.GameInfoPanel;
 import dodGUI.ItemInfoPanel;
 import dodGUI.VisionPanel;
+import dodUtil.CommandException;
 import dodUtil.Interrupter;
 
 public class GUIGameClient extends JFrame implements NetworkMessageListener{
@@ -96,7 +97,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 * This constructor initiates the GUI and then sets up a NetworkClient and a scanner.
 	 */
 	public GUIGameClient(){
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Exit on close.
 		
 		//Create new interrupter and associated runnable.
 		interrupter = new Interrupter(new Runnable(){
@@ -131,7 +131,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		this.setMinimumSize(new Dimension(700, 600));
 		this.setVisible(true);
 		
-		
 		this.setJMenuBar(createMenuBar());
 		
 		//Add everything to this panel - including struts and glue.
@@ -147,7 +146,12 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		this.add(Box.createVerticalGlue());
 		
 		//Connect to client.
-		nc = new NetworkClient(address, port, this);
+		try {
+			nc = new NetworkClient(address, port, this);
+		} catch (CommandException ce) {
+			showError(ce.getMessage());
+			System.exit(0);
+		}
 		infoPanel.println("Connected to server: " + address + ":" + port);
 		
 		try {
@@ -155,6 +159,16 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			messageStack.put("LOOK"); //Look (and so draw the map).
 		} catch (InterruptedException e) {
 		}
+		
+		//Add a window listener, that shuts down the nc on close - 
+		//from http://stackoverflow.com/questions/9093448/do-something-when-the-close-button-is-clicked-on-a-jframe
+		this.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		    	nc.stopClient();
+		    	System.exit(0);
+		    }
+		});
 	}
 	
 	/**
@@ -203,16 +217,19 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			if(commandWaitingForResponse.startsWith("ATTACK")){
 				commandWaitingForResponse = "";
 				
+				infoPanel.modifyAp(-1);
 				infoPanel.println("Attack hit! " + message);
 			}
 			else if(commandWaitingForResponse.startsWith("MOVE")){ //If responding to a move message...
 				String respondDirection = commandWaitingForResponse.replace("MOVE ", "");
 				commandWaitingForResponse = "";
 				
+				infoPanel.modifyAp(-1);
 				infoPanel.println("Moved " + respondDirection);
 			}
 			else if(commandWaitingForResponse.startsWith("PICKUP")){
 				commandWaitingForResponse = "";
+				//infoPanel.modifyAp(-1);
 				
 				//Handle pickup code here.
 				char[][] lookArr = lp.getLook();
@@ -306,10 +323,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				//Schedule a timeout.
 				interrupter.interruptIn(500);
 				
-				if(usesAp(lastMessage)){
-					//Update ui.
-					infoPanel.modifyAp(-1);
-				}
 				return lastMessage;		
 			}
 			
@@ -328,10 +341,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			//Wait for a command.
 			String newCommand = messageStack.take();
 			
-			if(usesAp(newCommand)){
-				//Update ui.
-				infoPanel.modifyAp(-1);
-			}
 			return newCommand;
 			
 		} catch (InterruptedException e) {
@@ -351,7 +360,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			address = JOptionPane.showInputDialog("Enter the IP address of the server to connect to:"); //Prompt the user.
 			
 			if(address == null){
-				System.exit(0); //Null input should mean the user wants the client to quit.
+				System.exit(0);
 			}
 
 			//Cast to an Inetaddress and look for exceptions.
@@ -391,7 +400,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			try{
 				String userInput = JOptionPane.showInputDialog("Enter the port number for the server to connect to:");
 				if(userInput == null){
-					System.exit(0); //Null input should mean the user wants the client to quit.
+					System.exit(0);
 				}
 				else{
 					port = Integer.parseInt(userInput);
@@ -513,6 +522,8 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 * @return Menu bar created.
 	 */
 	private JMenuBar createMenuBar(){
+		JFrame thisFrame = this;
+			
 		JMenuBar menuBar = new JMenuBar();
 		
 		//Create 'game' menu.
@@ -524,8 +535,8 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		
 		//Action listener to quit the game.
 		ActionListener quitGameAl = new ActionListener(){
-			
 			public void actionPerformed(ActionEvent e) {
+				nc.stopClient();
 				System.exit(0);
 			}
 		};
@@ -533,10 +544,9 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		//Action Listener to start a new game.
 		
 		//Some way to refer to this JFrame:
-		JFrame thisFrame = this;
 		
-		ActionListener newGameAl = new ActionListener(){
-			
+		
+		ActionListener newGameAl = new ActionListener(){	
 			public void actionPerformed(ActionEvent e) {
 				nc.stopClient();
 				thisFrame.dispose();
@@ -551,7 +561,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		game.add(quitGame);
 		menuBar.add(game);
 		
-		
 		return menuBar;
 	}
 	
@@ -562,14 +571,15 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 */
 	private int parseInt(String stringInt){
 		int val = 0;
+		
 		try{
-		val = Integer.parseInt(stringInt);
+			val = Integer.parseInt(stringInt);
 		}
 		catch(NumberFormatException e){
 		}
-		catch(NullPointerException e){
-			
+		catch(NullPointerException e){	
 		}
+		
 		return val;
 	}
 	/**
@@ -585,17 +595,18 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			return false;
 		}
 	}
+	
 	/**
-	 * Given a server command, returns whether or not that command uses ap.
-	 * @param command Command to check.
-	 * @return True if uses ap, false otherwise.
+	 * @param msg Shows an error with this message.
 	 */
-	private boolean usesAp(String command){
-		if(command.startsWith("ATTACK") || command.startsWith("MOVE") || command.startsWith("PICKUP")){
-			return true;
-		}
-		else{
-			return false;
-		}
+	private void showError(String msg){
+		JOptionPane.showMessageDialog(this, "Error: " + msg, "Error", JOptionPane.ERROR_MESSAGE);
 	}
+	
+//	/**
+//	 * @param msg Shows a warning with this message
+//	 */
+//	private static void showWarning(String msg){
+//		JOptionPane.showMessageDialog(new JFrame(), "Warning: " + msg, "Warning", JOptionPane.WARNING_MESSAGE);
+//	}
 }
