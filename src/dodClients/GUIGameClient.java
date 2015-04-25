@@ -164,15 +164,15 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		try {
 			messageStack.put("HELLO " + playerName); //Say hello
 			messageStack.put("LOOK"); //Look (and so draw the map).
+			messageStack.put("APGET"); //Get ap
 		} catch (InterruptedException e) {
 		}
 		
-		//Add a window listener, that shuts down the nc on close - 
+		//Add a window listener, that shuts down the client on close - 
 		//from http://stackoverflow.com/questions/9093448/do-something-when-the-close-button-is-clicked-on-a-jframe
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	nc.stopClient();
 		    	System.exit(0);
 		    }
 		});
@@ -194,10 +194,18 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 				vp.changeSize(look[0].length, look.length);
 				vp.writeArr(look);
 				
-				//Refresh UI elements and re-validate.
+				//Refresh UI elements and re-validate.		
 				vp.refresh();
 				this.validate();
 				this.repaint();
+			}
+		}
+		else if(message.startsWith("AP")){
+			try{
+				infoPanel.setAp(Integer.parseInt(message.replace("AP ", "")));
+			}
+			catch(NumberFormatException e){
+				showError("AP message was invalid");
 			}
 		}
 		else if(message.startsWith("FROM")){
@@ -229,19 +237,31 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 			if(commandWaitingForResponse.startsWith("ATTACK")){
 				commandWaitingForResponse = "";
 				
-				infoPanel.modifyAp(-1);
+				try {
+					messageStack.put("APGET");
+				} catch (InterruptedException e) {
+				}
+				
 				infoPanel.println("Attack hit! " + message);
 			}
 			else if(commandWaitingForResponse.startsWith("MOVE")){ //If responding to a move message...
 				String respondDirection = commandWaitingForResponse.replace("MOVE ", "");
 				commandWaitingForResponse = "";
 				
-				infoPanel.modifyAp(-1);
+				try {
+					messageStack.put("APGET");
+				} catch (InterruptedException e) {
+				}
+				
 				infoPanel.println("Moved " + respondDirection);
 			}
 			else if(commandWaitingForResponse.startsWith("PICKUP")){
 				commandWaitingForResponse = "";
-				//infoPanel.modifyAp(-1);
+				
+				try {
+					messageStack.put("APGET");
+				} catch (InterruptedException e) {
+				}
 				
 				//Handle pickup code here.
 				char[][] lookArr = lp.getLook();
@@ -263,7 +283,6 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		}
 		else if(message.startsWith("STARTTURN")){
 			//Players turn begins.
-			infoPanel.resetAp();
 			infoPanel.println("It is now your turn.");
 		}
 		else if(message.startsWith("ENDTURN")){
@@ -462,11 +481,11 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		nav.setLayout(new BorderLayout());
 		
 		//Create buttons.
-		JButton north = new JButton("N");
-		JButton east = new JButton("E");
-		JButton south = new JButton("S");
-		JButton west = new JButton("W");
-		JButton attackToggle = new JButton("Move Mode");
+		final JButton north = new JButton("N");
+		final JButton east = new JButton("E");
+		final JButton south = new JButton("S");
+		final JButton west = new JButton("W");
+		final JButton attackToggle = new JButton("Move Mode");
 		
 		//Set prefered sizes.
 		north.setPreferredSize(new Dimension(50, 50));
@@ -542,22 +561,30 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		JPanel inputPanel = new JPanel();
 		inputPanel.setLayout(new GridLayout(1,2));
 		
-		JTextField inputArea = new JTextField(); 
+		final JTextField inputArea = new JTextField(); 
 		
 		JButton submitButton = new JButton("Send");
 	
 		inputPanel.add(inputArea);;
 		inputPanel.add(submitButton);
 		
+		//Send a message to the server.
 		ActionListener sendMessage = new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				if(inputArea.getText().equals("") == false){
-					try {
-						messageStack.put("SHOUT " + inputArea.getText());
-					} catch (InterruptedException e1) {
-					}
-					inputArea.setText("");
+				
+				if(nc.stopped() == true){
+					infoPanel.println("No longer connected to server.");
+					return;
 				}
+		
+				try{
+					messageStack.put("SHOUT " + inputArea.getText());;
+				}
+				catch(InterruptedException except){
+					
+				}
+				inputArea.setText("");
+				
 			}
 		};
 		
@@ -603,7 +630,7 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 	 */
 	private JMenuBar createMenuBar(){
 		//Some way to refer to this JFrame:
-		JFrame thisFrame = this;
+		final JFrame thisFrame = this;
 			
 		JMenuBar menuBar = new JMenuBar();
 		
@@ -611,9 +638,9 @@ public class GUIGameClient extends JFrame implements NetworkMessageListener{
 		JMenu game = new JMenu("Game");
 		
 		//Create menu items.
-		JMenuItem newGame = new JMenuItem("Switch Server");
-		JMenuItem aboutGame = new JMenuItem("About");
-		JMenuItem quitGame = new JMenuItem("Quit");
+		final JMenuItem newGame = new JMenuItem("Switch Server");
+		final JMenuItem aboutGame = new JMenuItem("About");
+		final JMenuItem quitGame = new JMenuItem("Quit");
 		
 		//Action Listener to start a new game.
 		newGame.addActionListener(new ActionListener(){	

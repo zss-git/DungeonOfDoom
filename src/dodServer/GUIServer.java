@@ -110,7 +110,6 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	srv.stopServer();
 		    	System.exit(0);
 		    }
 		});
@@ -134,6 +133,11 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 	 */
 	@Override
 	public void errorOccured(String msg) {
+		
+		if(msg.startsWith("Failed to start server on socket")){
+			infoPanel.setNotListening();
+		}
+		
 		showError(msg);		
 	}
 	
@@ -141,7 +145,7 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 	 * Creates a menu bar for the application.
 	 */
 	private JMenuBar createMenuBar(){
-		JFrame thisFrame = this; //Allow us to refer to this frame.
+		final JFrame thisFrame = this; //Allow us to refer to this frame.
 		
 		JMenuBar menuBar = new JMenuBar();
 		
@@ -151,16 +155,16 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		JMenu clientsMenu = new JMenu("Clients");
 		
 		//Create menu items.
-		JMenuItem applicationNew = new JMenuItem("New Game");
-		JMenuItem applicationHideMap = new JMenuItem("Hide Map");
-		JMenuItem applicationAbout = new JMenuItem("About");
-		JMenuItem applicationQuit = new JMenuItem("Quit");
+		final JMenuItem applicationNew = new JMenuItem("New Game");
+		final JMenuItem applicationHideMap = new JMenuItem("Hide Map");
+		final JMenuItem applicationAbout = new JMenuItem("About");
+		final JMenuItem applicationQuit = new JMenuItem("Quit");
 		
-		JMenuItem serverStart = new JMenuItem("Start Listening");
-		JMenuItem serverStop = new JMenuItem("Stop Listening");
-		JMenuItem changePort = new JMenuItem("Change port");
+		final JMenuItem serverStart = new JMenuItem("Start Listening");
+		final JMenuItem serverStop = new JMenuItem("Stop Listening");
+		final JMenuItem changePort = new JMenuItem("Change port");
 		
-		JMenuItem clientBot = new JMenuItem("Add Bot");
+		final JMenuItem clientBot = new JMenuItem("Add Bot");
 		
 		//Add them to the appropriate menus.
 		applicationMenu.add(applicationNew);
@@ -216,7 +220,6 @@ public class GUIServer extends JFrame implements UpdateWatcher, ErrorListener{
 		
 		applicationQuit.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				srv.stopServer();
 				System.exit(0);
 			}
 		});

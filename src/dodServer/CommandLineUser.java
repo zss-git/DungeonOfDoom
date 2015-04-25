@@ -211,7 +211,15 @@ public abstract class CommandLineUser implements PlayerListener, Runnable {
 	    this.game.clientHello(name, this.playerID);
 	    outputMessage("HELLO " + name, true);
 
-	} else if (command.equals("LOOK")) {
+	}
+	else if(command.equals("APGET")){
+	    if (arg != null) {
+		throw new CommandException("APGET does not take an argument");
+	    }
+	    this.waitingForResponse = true;
+	    outputMessage("AP " + this.game.getAp(this.playerID), true);
+	}
+	else if (command.equals("LOOK")) {
 	    if (arg != null) {
 		throw new CommandException("LOOK does not take an argument");
 	    }

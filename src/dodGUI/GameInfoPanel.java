@@ -40,10 +40,6 @@ public class GameInfoPanel extends JPanel {
 	private final int 	defaultHp = 3;
 	private int 		hp;
 	
-	//AP
-	private final int 	defaultAp = 6;
-	private int 		ap;
-	
 	/**
 	 * Creates a new instance.
 	 */
@@ -51,7 +47,6 @@ public class GameInfoPanel extends JPanel {
 		//Make all tracked values their defaults.
 		gold = defaultGold;
 		hp = defaultHp;
-		ap = defaultAp;
 		
 		goldWin = 0; //Placeholder.
 		
@@ -59,7 +54,7 @@ public class GameInfoPanel extends JPanel {
 		goldWinLabel = new JLabel("Need: ?g");
 		goldLabel = new JLabel("Have: " + gold + "g");
 		healthLabel = new JLabel(hp + "hp");
-		apLabel = new JLabel(ap + "ap");
+		apLabel = new JLabel(0 + "ap");
 		infoLabel = new JLabel("info");
 		
 		//Add everything and the spacers.
@@ -129,26 +124,9 @@ public class GameInfoPanel extends JPanel {
 	
 	/**
 	 * Modifies the amount of AP possessed.
-	 * @param apMod Value to add - can be negative.
+	 * @param ap Value to set AP to - can be negative.
 	 */
-	public void modifyAp(int apMod){
-		ap = ap + apMod;
-		apLabel.setText(ap + "ap");
-	}
-	
-	/**
-	 * Gets ap.
-	 * @return How much AP the player possesses.
-	 */
-	public int getAp(){
-		return ap;
-	}
-	
-	/**
-	 * Resets ap to the default.
-	 */
-	public void resetAp(){
-		ap = defaultAp;
+	public void setAp(int ap){
 		apLabel.setText(ap + "ap");
 	}
 	

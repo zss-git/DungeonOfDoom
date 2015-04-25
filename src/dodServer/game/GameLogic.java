@@ -404,6 +404,13 @@ public class GameLogic {
 	    player.sendMessage(message);
 	}
     }
+    
+    /**
+     * Gets the AP of the current player.
+     */
+    public int getAp(int playerID){
+    	return players.get(playerID).remainingAp();
+    }
 
     /**
      * Handles the message ENDTURN from the client. Throws command exception if it is not the players turn.
@@ -534,24 +541,23 @@ public class GameLogic {
     		if(newGold.getValue() > 0){
     			playersTile.setItem(newGold);
     		}
-    		
-    		//Double check their hp is set to 0.
-    		playerToKill.kill();
-    		
-    		
-    		playerToKill.setLocation(new Location(-10, -10)); //Move the player to a special dead area
-    		
-    		playerToKill.lookChange(); //Tell the current player to update their look.
-    		
-    		//Tell everyone else to update their look.
-    		notifyPlayersOfChange(locationOfDeath);
-    		
-    		mapUpdated();
-    		
-    		//Tell the player they have lost.
-    		playerToKill.lose();
-    		
     	}
+    	
+		//Double check their hp is set to 0.
+		playerToKill.kill();
+		
+		
+		playerToKill.setLocation(new Location(-10, -10)); //Move the player to a special dead area
+		
+		playerToKill.lookChange(); //Tell the current player to update their look.
+		
+		//Tell everyone else to update their look.
+		notifyPlayersOfChange(locationOfDeath);
+		
+		mapUpdated();
+		
+		//Tell the player they have lost.
+		playerToKill.lose();
     	
     }
 
